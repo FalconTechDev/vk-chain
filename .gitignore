@@ -1,0 +1,34 @@
+# Кэш и личные данные — НИКОГДА не коммитить
+friends_cache.json
+relatives_cache.json
+graph_cache.json
+relatives_reports/
+photos/
+
+# Логи
+*.log
+vk_chain_log.txt
+
+# Токен VK — НИКОГДА не коммитить
+~/.vk_chain_token
+.vk_chain_token
+*.token
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
