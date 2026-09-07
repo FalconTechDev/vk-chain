@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package scripts
+        run: |
+          mkdir release
+          cp vk_chain.py vk.py explore.py README.md release/
+          cd release
+          zip -r ../vk-chain-${{ github.ref_name }}.zip .
+          tar czf ../vk-chain-${{ github.ref_name }}.tar.gz .
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            vk-chain-${{ github.ref_name }}.zip
+            vk-chain-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true
+          body: |
+            ## Установка
+
+            **Требования:** Python 3.9+, `pip install requests`, токен VK с правами `friends`.
+
+            ```bash
+            # Скачай и распакуй архив, затем:
+            pip install requests
+            python vk_chain.py --token ТВОЙ_ТОКЕН --save
+
+            # Найти цепочку:
+            python vk_chain.py durov id123456
+
+            # Визуальный граф:
+            python explore.py
+            ```
+
+            Подробнее — в [README.md](https://github.com/FalconTechDev/vk-chain#readme).
