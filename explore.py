@@ -511,6 +511,50 @@ var net = new vis.Network(
   }
 );
 
+// ── Detail level ──────────────────────────────────────────────────
+// Avatars and curved edges are the two most expensive things vis.js can be
+// asked to draw: a circularImage node is a texture per node, and a dynamic
+// smooth edge recomputes its support point every frame. Both are fine for a
+// few hundred nodes and are what makes a few thousand crawl, so past a
+// threshold the graph degrades to plain dots and straight lines.
+var DETAIL_LIMIT = 600;   // nodes above which avatars and curves are dropped
+var simpleMode   = false;
+
+function applyDetail() {
+  var want = gNodes.length > DETAIL_LIMIT;
+  if (want === simpleMode) return;
+  simpleMode = want;
+
+  var nodeFix = gNodes.getIds().map(function(id) {
+    return want ? {id:id, shape:'dot', image:undefined}
+                : {id:id, shape:'circularImage', image:mkSvg(nodeMap[id] ? nodeMap[id].name : '')};
+  });
+  var edgeFix = gEdges.getIds().map(function(id) {
+    return {id:id, smooth: want ? false : {type:'dynamic'}};
+  });
+  gNodes.update(nodeFix);
+  gEdges.update(edgeFix);
+
+  // Hover hit-tests every node on every mouse move, which is the next cost
+  // after drawing once the graph is large.
+  net.setOptions({ interaction: { hover: !want } });
+  toast(want ? 'Упрощённый режим: много узлов' : 'Подробный режим');
+}
+
+// ── Batched inserts ───────────────────────────────────────────────
+// Adding nodes one at a time makes vis.js react to each insert separately,
+// so expanding a user with 2500 friends meant 5000 separate updates. These
+// buffers collect a whole expansion and hand it over in one call.
+var pendNodes = null, pendEdges = null;
+function beginBatch() { pendNodes = []; pendEdges = []; }
+function endBatch() {
+  if (pendNodes && pendNodes.length) gNodes.add(pendNodes);
+  if (pendEdges && pendEdges.length) gEdges.add(pendEdges);
+  pendNodes = null; pendEdges = null;
+  applyDetail();
+  updateStats();
+}
+
 // ── Node helpers ──────────────────────────────────────────────────
 function bCol(state) {
   return {new:'#30363d',loading:'#f0c040',expanded:'#3fb950',private:'#f85149'}[state]||'#30363d';
@@ -518,7 +562,8 @@ function bCol(state) {
 function mkNode(user, state, isCenter) {
   return {
     id: user.id, label: user.name.split(' ')[0],
-    image: mkSvg(user.name), shape: 'circularImage',
+    image: simpleMode ? undefined : mkSvg(user.name),
+    shape: simpleMode ? 'dot' : 'circularImage',
     size: isCenter ? 28 : 15,
     borderWidth: isCenter ? 3.5 : 1.5, borderWidthSelected: 4,
     color: {border:bCol(state||'new'), background:'#1c2128',
@@ -540,18 +585,18 @@ function addUser(user, isCenter) {
   stateMap[user.id] = 'new';
   var n = mkNode(user, 'new', isCenter);
   n.x = 0; n.y = 0;
-  gNodes.add(n);
-  updateStats();
+  if (pendNodes) { pendNodes.push(n); } else { gNodes.add(n); updateStats(); }
 }
 function addEdge(a, b, isCycle) {
   var key = Math.min(a,b)+'_'+Math.max(a,b);
   if (edgeSet.has(key)) return;
   edgeSet.add(key);
-  gEdges.add({id:edgeCtr++,from:a,to:b,
+  var e = {id:edgeCtr++,from:a,to:b,
     color:isCycle?{color:'rgba(240,192,64,.55)',highlight:'rgba(240,192,64,.9)'}
                  :{color:'rgba(48,54,61,.85)',  highlight:'rgba(91,138,245,.85)'},
-    width:isCycle?1.5:1, dashes:isCycle?[4,3]:false, smooth:{type:'dynamic'}});
-  updateStats();
+    width:isCycle?1.5:1, dashes:isCycle?[4,3]:false,
+    smooth: simpleMode ? false : {type:'dynamic'}};
+  if (pendEdges) { pendEdges.push(e); } else { gEdges.add(e); updateStats(); }
 }
 
 // ── Layout: position all nodes at a depth in an even circle ───────
@@ -561,10 +606,11 @@ function layoutDepth(depth) {
   var n = ids.length;
   // Radius = enough for NODE_GAP between adjacent nodes
   var r = Math.max(depth * LEVEL_R, n * NODE_GAP / (2 * Math.PI));
-  ids.forEach(function(id, i) {
+  // One update with every position, not one update per node.
+  gNodes.update(ids.map(function(id, i) {
     var angle = (i / n) * 2 * Math.PI - Math.PI / 2;
-    gNodes.update({id:id, x:Math.cos(angle)*r, y:Math.sin(angle)*r});
-  });
+    return {id:id, x:Math.cos(angle)*r, y:Math.sin(angle)*r};
+  }));
 }
 
 function registerNode(id, depth) {
@@ -699,6 +745,7 @@ async function expandNode(userId, silent) {
   var childDepth = myDepth + 1;
   var newIds = [];
 
+  beginBatch();
   friends.forEach(function(f) {
     var isNew = !nodeMap[f.id];
     if (isNew) {
@@ -708,13 +755,14 @@ async function expandNode(userId, silent) {
     }
     addEdge(userId, f.id, !isNew);
   });
+  endBatch();
 
-  // Temporary positions: scatter in the child depth ring
-  newIds.forEach(function(id, i) {
+  // Temporary positions: scatter in the child depth ring, in one update
+  var r = childDepth * LEVEL_R;
+  gNodes.update(newIds.map(function(id) {
     var angle = Math.random() * 2 * Math.PI;
-    var r = childDepth * LEVEL_R;
-    gNodes.update({id:id, x:Math.cos(angle)*r, y:Math.sin(angle)*r});
-  });
+    return {id:id, x:Math.cos(angle)*r, y:Math.sin(angle)*r};
+  }));
 
   setNodeState(userId, 'expanded');
   updateSidebar(userId);
@@ -808,11 +856,13 @@ async function startWithUser(query) {
   var friends = d2.friends || [];
   var depth1ids = [];
 
+  beginBatch();
   friends.forEach(function(f) {
     var isNew = !nodeMap[f.id];
     if (isNew) { addUser(f, false); registerNode(f.id, 1); depth1ids.push(f.id); }
     addEdge(user.id, f.id, !isNew);
   });
+  endBatch();
 
   setNodeState(user.id, 'expanded');
 
