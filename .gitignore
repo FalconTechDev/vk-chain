@@ -32,3 +32,17 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# Данные приложения — это имена, города и связи реальных людей, а также
+# история поисков. НИКОГДА не коммитить
+profiles.json
+history.json
+settings.json
+chain_found.json
+selftest.txt
+
+# Сборка (python build.py)
+build/
+dist/
+*.spec
+build_log.txt
