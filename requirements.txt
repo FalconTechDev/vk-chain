@@ -1,0 +1,8 @@
+# What the program needs to run from source.
+requests>=2.31
+pywebview>=5.0
+
+# What it needs to be built into an installer (python build.py).
+# Inno Setup 6 is a separate download: https://jrsoftware.org/isdl.php
+pyinstaller>=6.0
+Pillow>=10.0   # only for assets/make_logo.py

@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>window.__resources = {"https://unpkg.com/react@18.3.1/umd/react.production.min.js": "./vendor/react.production.min.js", "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "./vendor/react-dom.production.min.js"};</script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="./vendor/fonts.css">
+<style>
+html,body{margin:0;background:#08090b;height:100%;overflow:hidden}
+#dc-root{width:100%;height:100%}
+/* Dark thin scrollbars: the native ones are bright white bars down every panel. */
+*{scrollbar-width:thin;scrollbar-color:#363b45 transparent}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#363b45;border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:#555964}
+*{box-sizing:border-box}
+a{color:#9aa6ff;text-decoration:none}
+a:hover{color:#c6ccff}
+input::placeholder{color:#555964}
+</style>
+</helmet>
+<div style="width:100vw;height:100vh;background:#0b0c0e;color:#e6e6df;font-family:'JetBrains Mono',monospace;position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(#15171b 1px,transparent 1px),linear-gradient(90deg,#15171b 1px,transparent 1px),linear-gradient(#0f1114 1px,transparent 1px),linear-gradient(90deg,#0f1114 1px,transparent 1px);background-size:96px 96px,96px 96px,24px 24px,24px 24px;pointer-events:none"></div>
+  <canvas ref="{{ canvasRef }}" onPointerDown="{{ onDown }}" onPointerMove="{{ onMove }}" onPointerUp="{{ onUp }}" onWheel="{{ onWheel }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;cursor:{{ cursor }};touch-action:none"></canvas>
+
+  <sc-if value="{{ isSplash }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:100px;gap:16px">
+      <div style="font-family:'Unbounded',sans-serif;font-size:72px;font-weight:800;letter-spacing:-.03em;color:#ecebe4;line-height:1;text-transform:uppercase">vk-chain</div>
+      <div style="width:340px;height:22px;border:2px solid #ecebe4;border-radius:2px;padding:3px;margin-top:12px;box-shadow:4px 4px 0 #000">
+        <div style="height:100%;border-radius:2px;background:#7b8cff;width:{{ bootPct }}"></div>
+      </div>
+      <div style="font-size:13px;color:#9a9ca6;height:18px">{{ bootLine }}</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:28px;left:48px;right:48px;display:flex;align-items:center;gap:14px;pointer-events:none">
+      <div style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:800;color:#ecebe4;text-transform:uppercase;letter-spacing:-.02em">vk-chain</div>
+      <div style="margin-left:auto;pointer-events:auto;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border:2px solid #262a31;border-radius:2px;background:#111317;font-size:13px;color:#b8bac2">
+        <div style="width:10px;height:10px;border-radius:2px;background:{{ tokenDot }}"></div>{{ tokenText }}
+      </div>
+      <div style="pointer-events:auto;display:flex;border:2px solid #262a31;border-radius:2px;overflow:hidden;background:#111317">
+        <sc-for list="{{ viewSeg }}" as="o" hint-placeholder-count="2">
+          <div onClick="{{ o.pick }}" style="height:36px;padding:0 14px;display:flex;align-items:center;cursor:pointer;font-size:13px;font-weight:700;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</div>
+        </sc-for>
+      </div>
+      <div onClick="{{ toggleFull }}" style="pointer-events:auto;height:40px;padding:0 14px;border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:4px 4px 0 #000;display:flex;align-items:center;font-size:13px;font-weight:700;color:#e6e6df;cursor:pointer;white-space:nowrap" style-hover="border-color:#e6e6df">{{ fullLabel }}</div>
+      <div onClick="{{ openMain }}" style="pointer-events:auto;height:40px;padding:0 14px;border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:4px 4px 0 #000;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#e6e6df;cursor:pointer;white-space:nowrap" style-hover="border-color:#e6e6df">⚙ НАСТРОЙКИ</div>
+    </div>
+
+    <div style="position:absolute;left:48px;top:110px;width:470px;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="font-family:'Unbounded',sans-serif;font-size:36px;font-weight:700;line-height:1.1;letter-spacing:-.02em;color:#ecebe4;text-wrap:pretty">{{ mode.title }}</div>
+      </div>
+
+      <div style="border:2px solid #363b45;border-radius:3px;background:#111317;box-shadow:8px 8px 0 #000;display:flex;flex-direction:column">
+       <div style="padding:20px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;border:2px solid #262a31;border-radius:2px;position:relative">
+          <sc-for list="{{ mainModes }}" as="m" hint-placeholder-count="4">
+            <div onClick="{{ m.pick }}" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;border-right:{{ m.sep }};background:{{ m.bg }};color:{{ m.color }}">{{ m.label }}</div>
+          </sc-for>
+          <sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;right:-2px;top:46px;z-index:3;width:250px;border:2px solid #e6e6df;border-radius:2px;background:#111317;box-shadow:6px 6px 0 #000;display:flex;flex-direction:column;overflow:hidden">
+              <sc-for list="{{ extraModes }}" as="m" hint-placeholder-count="2">
+                <div onClick="{{ m.pick }}" style="padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:3px;border-bottom:1px solid #262a31" style-hover="background:#191c21">
+                  <div style="font-size:14px;font-weight:700;color:#ecebe4">{{ m.label }}</div>
+                  <div style="font-size:12px;color:#9a9ca6">{{ m.short }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ isChain }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px;position:relative">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ОТКУДА</div>
+            <input value="{{ from }}" onChange="{{ onFrom }}" placeholder="id или vk.com/…" style="height:50px;border:2px solid #262a31;border-radius:2px;background:#0a0b0d;box-shadow:inset 2px 2px 0 #000;padding:0 16px;color:#ecebe4;font-family:'JetBrains Mono',monospace;font-size:15px;outline:none" style-focus="border-color:#7b8cff">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85;margin-top:6px">КУДА</div>
+            <input value="{{ to }}" onChange="{{ onTo }}" placeholder="id или vk.com/…" style="height:50px;border:2px solid #262a31;border-radius:2px;background:#0a0b0d;box-shadow:inset 2px 2px 0 #000;padding:0 16px;color:#ecebe4;font-family:'JetBrains Mono',monospace;font-size:15px;outline:none" style-focus="border-color:#7b8cff">
+            <div onClick="{{ swap }}" style="position:absolute;right:12px;top:72px;width:32px;height:32px;border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:2px 2px 0 #000;display:flex;align-items:center;justify-content:center;font-size:14px;color:#e6e6df;cursor:pointer" style-hover="border-color:#e6e6df">⇅</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+              <div style="flex:1;font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">КОЛИЧЕСТВО ПУТЕЙ</div>
+              <div style="display:flex;border:2px solid #262a31;border-radius:2px;overflow:hidden;height:38px;background:#0a0b0d">
+                <div onClick="{{ pathsDec }}" style="width:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:700;color:#e6e6df;background:#111317" style-hover="background:#191c21">−</div>
+                <div style="min-width:46px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#ecebe4;border-left:2px solid #262a31;border-right:2px solid #262a31">{{ pathsN }}</div>
+                <div onClick="{{ pathsInc }}" style="width:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:700;color:#e6e6df;background:#111317" style-hover="background:#191c21">+</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isRelatives }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <input value="{{ relUser }}" onChange="{{ onRelUser }}" placeholder="Пользователь" style="height:50px;border:2px solid #262a31;border-radius:2px;background:#0a0b0d;box-shadow:inset 2px 2px 0 #000;padding:0 16px;color:#ecebe4;font-family:'JetBrains Mono',monospace;font-size:15px;outline:none" style-focus="border-color:#7b8cff">
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ sources }}" as="c" hint-placeholder-count="5">
+                <div onClick="{{ c.toggle }}" style="height:32px;display:flex;align-items:center;padding:0 12px;border-radius:2px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.color }}">{{ c.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isExplore }}" hint-placeholder-val="{{ false }}">
+          <input value="{{ center }}" onChange="{{ onCenter }}" placeholder="Центральный узел" style="height:50px;border:2px solid #262a31;border-radius:2px;background:#0a0b0d;box-shadow:inset 2px 2px 0 #000;padding:0 16px;color:#ecebe4;font-family:'JetBrains Mono',monospace;font-size:15px;outline:none" style-focus="border-color:#7b8cff">
+        </sc-if>
+        <sc-if value="{{ isIntersect }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px;min-height:50px;border:2px solid #262a31;border-radius:2px;background:#0a0b0d">
+            <sc-for list="{{ people }}" as="p" hint-placeholder-count="3">
+              <div style="height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;border:2px solid #363b45;border-radius:2px;background:#111317;font-size:13px;color:#ecebe4">{{ p.id }}<span onClick="{{ p.remove }}" style="color:#9a9ca6;cursor:pointer">×</span></div>
+            </sc-for>
+            <div onClick="{{ addPerson }}" style="height:30px;display:flex;align-items:center;padding:0 8px;font-size:13px;font-weight:700;color:#9aa6ff;cursor:pointer">+ человек</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isClusters }}" hint-placeholder-val="{{ false }}">
+          <input value="{{ center }}" onChange="{{ onCenter }}" placeholder="Пользователь" style="height:50px;border:2px solid #262a31;border-radius:2px;background:#0a0b0d;box-shadow:inset 2px 2px 0 #000;padding:0 16px;color:#ecebe4;font-family:'JetBrains Mono',monospace;font-size:15px;outline:none" style-focus="border-color:#7b8cff">
+        </sc-if>
+
+        <div onClick="{{ run }}" style="height:56px;border:2px solid #000;border-radius:2px;background:#7b8cff;color:#0a0b0d;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:5px 5px 0 #000,inset 0 2px 0 rgba(255,255,255,.35);text-transform:uppercase" style-hover="background:#8f9dff" style-active="box-shadow:1px 1px 0 #000;transform:translate(4px,4px)"><span>{{ mode.run }}</span><span>→</span></div>
+       </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div onClick="{{ toggleHist }}" style="display:flex;align-items:center;gap:10px;cursor:pointer">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ИСТОРИЯ · {{ histCount }}</div>
+          <div style="flex:1;height:2px;background:#1c1f25"></div>
+          <div style="font-size:12px;font-weight:700;color:#e6e6df">{{ histToggleLabel }}</div>
+        </div>
+        <sc-if value="{{ histClosed }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ recent }}" as="r" hint-placeholder-count="3">
+              <div onClick="{{ r.open }}" style="height:34px;display:flex;align-items:center;padding:0 12px;border:2px solid #262a31;border-radius:2px;cursor:pointer;background:#111317;font-size:13px;color:#b8bac2;white-space:nowrap" style-hover="border-color:#e6e6df;color:#ecebe4">{{ r.q }}</div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ histOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:5px 5px 0 #000;display:flex;flex-direction:column;overflow:hidden">
+            <div style="display:flex;border-bottom:2px solid #262a31">
+              <sc-for list="{{ histTabs }}" as="t" hint-placeholder-count="4">
+                <div onClick="{{ t.pick }}" style="flex:1;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:700;background:{{ t.bg }};color:{{ t.color }}">{{ t.label }}</div>
+              </sc-for>
+            </div>
+            <div style="max-height:250px;overflow:auto;display:flex;flex-direction:column">
+              <sc-for list="{{ history }}" as="h" hint-placeholder-count="6">
+                <div onClick="{{ h.open }}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #1c1f25;cursor:pointer;flex:none" style-hover="background:#191c21">
+                  <div style="width:84px;flex:none;font-size:10px;font-weight:700;letter-spacing:.06em;color:{{ h.color }}">{{ h.type }}</div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                    <div style="font-size:13px;color:#ecebe4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.q }}</div>
+                    <div style="font-size:11px;color:#767a85">{{ h.meta }}</div>
+                  </div>
+                  <div style="font-size:11px;color:#767a85;white-space:nowrap">{{ h.date }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isGraph }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;pointer-events:none">
+      <div style="position:absolute;top:24px;left:28px;right:28px;display:flex;align-items:center;gap:14px">
+        <div onClick="{{ goHome }}" style="pointer-events:auto;height:44px;padding:0 14px;border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:4px 4px 0 #000;display:flex;align-items:center;font-size:13px;font-weight:700;color:#e6e6df;cursor:pointer;flex:none;white-space:nowrap" style-hover="border-color:#e6e6df">← СТАРТ</div>
+        <div style="flex:1;display:flex;justify-content:center">
+          <div style="pointer-events:auto;position:relative">
+            <div style="height:48px;display:flex;align-items:center;gap:12px;padding:0 6px 0 18px;border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:4px 4px 0 #000">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#4fd18b;white-space:nowrap">2 РУКОПОЖАТИЯ</div>
+              <sc-for list="{{ chainItems }}" as="c" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <sc-if value="{{ c.arrow }}" hint-placeholder-val="{{ false }}"><div style="color:#7b8cff;font-weight:700">──▶</div></sc-if>
+                  <div onClick="{{ c.pick }}" style="font-size:14px;font-weight:700;color:#ecebe4;cursor:pointer;white-space:nowrap" style-hover="color:#9aa6ff">{{ c.name }}</div>
+                </div>
+              </sc-for>
+              <div onClick="{{ togglePaths }}" style="height:34px;margin-left:6px;padding:0 10px;display:flex;align-items:center;gap:8px;border:2px solid {{ pathsBtn.border }};border-radius:2px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;background:{{ pathsBtn.bg }};color:{{ pathsBtn.color }}">{{ pathsBtn.label }}</div>
+            </div>
+            <sc-if value="{{ pathsOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:56px;left:0;right:0;z-index:3;border:2px solid #363b45;border-radius:2px;background:#111317;box-shadow:6px 6px 0 #000;display:flex;flex-direction:column">
+                <div style="padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85;border-bottom:1px solid #1c1f25">ВСЕГО ПУТЕЙ · {{ pathCount }}</div>
+                <div style="max-height:300px;overflow:auto;display:flex;flex-direction:column">
+                  <sc-for list="{{ paths }}" as="pt" hint-placeholder-count="4">
+                    <div onClick="{{ pt.pick }}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #1c1f25;cursor:pointer;background:{{ pt.bg }}" style-hover="background:#191c21">
+                      <div style="width:24px;font-size:11px;font-weight:700;color:{{ pt.numColor }}">{{ pt.num }}</div>
+                      <div style="flex:1;min-width:0;font-size:13px;color:#e6e6df;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ pt.text }}</div>
+                      <div style="font-size:11px;color:#767a85;white-space:nowrap">{{ pt.meta }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="pointer-events:auto;display:flex;align-items:center;gap:10px;flex:none">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ВИД</div>
+          <div style="display:flex;border:2px solid #e6e6df;border-radius:2px;overflow:hidden;box-shadow:4px 4px 0 #000">
+            <sc-for list="{{ viewSeg }}" as="o" hint-placeholder-count="2">
+              <div onClick="{{ o.pick }}" style="height:40px;padding:0 16px;display:flex;align-items:center;cursor:pointer;font-size:14px;font-weight:700;white-space:nowrap;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</div>
+            </sc-for>
+          </div>
+          <div onClick="{{ openGraph }}" style="height:44px;width:44px;border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:4px 4px 0 #000;display:flex;align-items:center;justify-content:center;font-size:18px;color:#e6e6df;cursor:pointer" style-hover="border-color:#e6e6df">⚙</div>
+        </div>
+      </div>
+
+      <div style="position:absolute;top:96px;left:28px;width:300px;max-height:670px;pointer-events:auto;border:2px solid #262a31;border-radius:3px;background:#111317;box-shadow:6px 6px 0 #000;display:flex;flex-direction:column;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:6px;padding:6px">
+          <div style="font-size:15px;color:#767a85;padding-left:8px">⌕</div>
+          <input value="{{ q }}" onChange="{{ onQ }}" placeholder="фамилия или имя" style="flex:1;min-width:0;height:36px;border:none;background:transparent;padding:0 4px;color:#ecebe4;font-family:'JetBrains Mono',monospace;font-size:14px;outline:none">
+          <div onClick="{{ toggleFilters }}" style="height:34px;padding:0 10px;display:flex;align-items:center;gap:6px;border-radius:2px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;border:2px solid {{ filterBtn.border }};background:{{ filterBtn.bg }};color:{{ filterBtn.color }}">{{ filterBtn.label }}</div>
+        </div>
+
+        <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 10px 10px">
+            <sc-for list="{{ activeChips }}" as="ac" hint-placeholder-count="2">
+              <div onClick="{{ ac.remove }}" style="height:26px;display:flex;align-items:center;gap:6px;padding:0 8px;border:2px solid #7b8cff;border-radius:2px;background:#191c21;font-size:11px;color:#ecebe4;cursor:pointer;white-space:nowrap"><span style="color:#767a85">{{ ac.k }}</span>{{ ac.v }}<span style="color:#9a9ca6">×</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ filtersOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:2px solid #262a31;padding:12px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ sortSeg }}" as="o" hint-placeholder-count="5">
+                <div onClick="{{ o.pick }}" style="height:28px;padding:0 10px;display:flex;align-items:center;gap:6px;border-radius:2px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;border:2px solid {{ o.border }};background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}<sc-if value="{{ o.hasN }}" hint-placeholder-val="{{ false }}"><span style="min-width:16px;height:16px;border-radius:3px;background:#7b8cff;color:#0a0b0d;font-size:10px;display:flex;align-items:center;justify-content:center">{{ o.n }}</span></sc-if></div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ facets }}" as="fc" hint-placeholder-count="5">
+                <div onClick="{{ fc.pick }}" style="display:flex;align-items:center;gap:8px;height:28px;padding:0 8px;border-radius:2px;cursor:pointer;background:{{ fc.bg }}" style-hover="background:#191c21">
+                  <div style="width:12px;height:12px;border-radius:2px;border:2px solid {{ fc.box }};background:{{ fc.fill }};flex:none"></div>
+                  <div style="flex:1;font-size:12px;color:#e6e6df;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fc.v }}</div>
+                  <div style="font-size:11px;color:#767a85">{{ fc.n }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showResults }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:2px solid #262a31;padding:10px 14px 6px;display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85"><span>НАЙДЕНО {{ resultCount }}</span><span onClick="{{ clearFilter }}" style="color:#9aa6ff;cursor:pointer">СБРОСИТЬ</span></div>
+          <div style="flex:1;min-height:0;max-height:300px;overflow:auto;padding:0 8px 8px;display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ results }}" as="rs" hint-placeholder-count="6">
+              <div onClick="{{ rs.pick }}" style="display:flex;align-items:center;gap:10px;min-height:34px;padding:0 8px;border-radius:2px;cursor:pointer;flex:none;background:{{ rs.bg }}" style-hover="background:#191c21">
+                <div style="width:10px;height:10px;border-radius:2px;border:1.5px solid #000;flex:none;background:{{ rs.color }}"></div>
+                <div style="flex:1;min-width:0;font-size:13px;color:#e6e6df;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ rs.name }}</div>
+                <div style="font-size:11px;color:#767a85;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis">{{ rs.val }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:96px;right:28px;bottom:120px;width:320px;pointer-events:auto;border:2px solid #262a31;border-radius:3px;background:#111317;box-shadow:8px 8px 0 #000;display:flex;flex-direction:column;overflow:hidden">
+          <div style="padding:16px 18px 14px;display:flex;gap:14px;align-items:flex-start;border-bottom:2px solid #262a31">
+            <div style="width:48px;height:48px;border-radius:2px;border:2px solid #000;flex:none;background:{{ sel.color }};box-shadow:3px 3px 0 #000"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
+              <div style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;color:#ecebe4;line-height:1.2">{{ sel.name }}</div>
+              <div style="font-size:12px;color:#9a9ca6">{{ sel.lvl }} · {{ sel.linkCount }} связей</div>
+            </div>
+            <div onClick="{{ closeSel }}" style="width:28px;height:28px;border:2px solid #262a31;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#9a9ca6;cursor:pointer;flex:none" style-hover="color:#ecebe4;border-color:#e6e6df">×</div>
+          </div>
+
+          <div style="padding:12px 18px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;border-bottom:2px solid #262a31;font-size:12px">
+            <sc-for list="{{ sel.fields }}" as="fd" hint-placeholder-count="4">
+              <div style="color:#767a85">{{ fd.k }}</div><div style="color:#e6e6df;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fd.v }}</div>
+            </sc-for>
+          </div>
+          <div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #262a31">
+            <div style="display:flex;gap:4px;flex:1;flex-wrap:wrap">
+              <sc-for list="{{ selColors }}" as="sw" hint-placeholder-count="8">
+                <div onClick="{{ sw.pick }}" style="width:20px;height:20px;border-radius:2px;cursor:pointer;background:{{ sw.c }};border:2px solid {{ sw.border }};box-shadow:{{ sw.shadow }}"></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="padding:10px 18px;display:flex;align-items:center;gap:6px;border-bottom:2px solid #262a31">
+            <sc-for list="{{ selShapes }}" as="sh" hint-placeholder-count="5">
+              <div onClick="{{ sh.pick }}" style="width:34px;height:30px;border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ sh.border }};background:{{ sh.bg }}"><div style="width:14px;height:14px;background:{{ sh.fill }};clip-path:{{ sh.clip }}"></div></div>
+            </sc-for>
+            <sc-if value="{{ selCustom }}" hint-placeholder-val="{{ false }}"><div onClick="{{ resetNodeStyle }}" style="margin-left:auto;font-size:11px;font-weight:700;color:#9aa6ff;cursor:pointer">СБРОС</div></sc-if>
+          </div>
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:2px solid #262a31">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ПУТЬ ОТ ЦЕНТРА · {{ sel.hops }}</div>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ sel.path }}" as="p" hint-placeholder-count="3">
+                <div onClick="{{ p.pick }}" style="display:flex;align-items:center;gap:12px;cursor:pointer;min-height:30px">
+                  <div style="width:14px;display:flex;flex-direction:column;align-items:center;align-self:stretch">
+                    <div style="width:2px;flex:1;background:{{ p.lineTop }}"></div>
+                    <div style="width:12px;height:12px;border-radius:3px;border:2px solid #000;flex:none;background:{{ p.color }}"></div>
+                    <div style="width:2px;flex:1;background:{{ p.lineBottom }}"></div>
+                  </div>
+                  <div style="font-size:13px;color:#e6e6df">{{ p.name }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0">
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85"><span>ПУТИ ОТ НЕГО</span><span>{{ sel.linkCount }}</span></div>
+            <div style="display:flex;flex-direction:column;gap:4px;overflow:auto;margin:0 -6px;padding:0 6px">
+              <sc-for list="{{ sel.links }}" as="n" hint-placeholder-count="6">
+                <div onClick="{{ n.pick }}" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 8px;border-radius:2px;cursor:pointer;flex:none" style-hover="background:#191c21">
+                  <div style="width:10px;height:10px;border-radius:2px;border:1.5px solid #000;background:{{ n.color }}"></div>
+                  <div style="flex:1;font-size:13px;color:#d6d6cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.name }}</div>
+                  <div style="font-size:11px;color:#767a85">{{ n.dir }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="padding:14px 18px 18px;display:flex;gap:8px;border-top:2px solid #262a31">
+            <div style="flex:1;height:42px;border:2px solid #000;border-radius:2px;background:#7b8cff;color:#0a0b0d;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 #000" style-active="box-shadow:none;transform:translate(3px,3px)">Цепочка до него</div>
+            <div onClick="{{ makeCenter }}" style="flex:1;height:42px;border:2px solid #363b45;border-radius:2px;background:#191c21;color:#e6e6df;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 #000" style-active="box-shadow:none;transform:translate(3px,3px)">В центр</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="position:absolute;bottom:46px;left:50%;transform:translateX(-50%);pointer-events:auto;display:flex;align-items:center;gap:12px;padding:8px;border:2px solid #262a31;border-radius:3px;background:#111317;box-shadow:6px 6px 0 #000">
+        <div onClick="{{ togglePause }}" style="height:42px;min-width:130px;padding:0 16px;border:2px solid #363b45;border-radius:2px;background:#191c21;color:#ecebe4;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer">{{ pauseBtn }}</div>
+        <div onClick="{{ goHome }}" style="height:42px;padding:0 16px;border:2px solid #000;border-radius:2px;background:#ff6b6b;color:#0a0b0d;display:flex;align-items:center;font-size:13px;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 #000">СТОП</div>
+        <div onClick="{{ resetView }}" style="height:42px;padding:0 14px;border:2px solid #363b45;border-radius:2px;background:#191c21;color:#e6e6df;display:flex;align-items:center;font-size:13px;font-weight:700;cursor:pointer">Сброс вида</div>
+        <div style="display:flex;align-items:center;gap:14px;padding:0 10px 0 4px;font-size:13px;color:#b8bac2;white-space:nowrap">
+          <sc-for list="{{ legend }}" as="l" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:7px"><div style="width:12px;height:12px;border-radius:3px;border:2px solid #000;background:{{ l.color }}"></div>{{ l.count }}</div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showStatus }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;height:26px;z-index:4;display:flex;align-items:stretch;border-top:2px solid #262a31;background:#08090b;font-size:11px;color:#767a85">
+      <sc-for list="{{ statusCells }}" as="sc" hint-placeholder-count="6">
+        <div style="display:flex;align-items:center;gap:6px;padding:0 12px;border-right:1px solid #1c1f25;white-space:nowrap"><div style="width:6px;height:6px;background:{{ sc.dot }}"></div><span>{{ sc.k }}</span><span style="color:#c9c8c0">{{ sc.v }}</span></div>
+      </sc-for>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;padding:0 12px;border-left:1px solid #1c1f25;color:#555964">vk-chain 2.0</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSearching }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:50%;bottom:50px;transform:translateX(-50%);width:560px;pointer-events:auto;border:2px solid #e6e6df;border-radius:3px;background:#111317;box-shadow:8px 8px 0 #000;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;color:#ecebe4">{{ searchTitle }}</div>
+        <div style="flex:1"></div>
+        <div onClick="{{ cancelSearch }}" style="height:32px;padding:0 12px;border:2px solid #363b45;border-radius:2px;display:flex;align-items:center;font-size:12px;font-weight:700;color:#e6e6df;cursor:pointer" style-hover="border-color:#e6e6df">ОТМЕНА</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700">
+        <div style="height:30px;padding:0 10px;display:flex;align-items:center;border:2px solid #7b8cff;border-radius:2px;color:#ecebe4">{{ searchFrom }}</div>
+        <sc-if value="{{ searchTwo }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;height:2px;background:linear-gradient(90deg,#7b8cff,#ff7ac6)"></div>
+          <div style="height:30px;padding:0 10px;display:flex;align-items:center;border:2px solid #ff7ac6;border-radius:2px;color:#ecebe4">{{ searchTo }}</div>
+        </sc-if>
+      </div>
+      <div style="height:14px;border:2px solid #262a31;border-radius:4px;padding:2px">
+        <div style="height:100%;border-radius:1px;background:#7b8cff;width:{{ searchPct }}"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#9a9ca6">
+        <span>проверено {{ searchChecked }} профилей</span>
+        <span style="white-space:pre">{{ searchFronts }}</span>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:{{ searchStatusColor }}">{{ searchStatus }}</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ dismissErr }}" style="position:absolute;left:50%;bottom:64px;transform:translateX(-50%);z-index:30;max-width:70%;display:flex;align-items:center;gap:14px;padding:12px 16px;border:2px solid #000;border-radius:2px;background:#ff6b6b;color:#0a0b0d;font-size:13px;font-weight:700;cursor:pointer;box-shadow:4px 4px 0 #000"><span>{{ errText }}</span><span style="opacity:.6">×</span></div>
+  </sc-if>
+  <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSettings }}" style="position:absolute;inset:0;background:rgba(5,6,8,.55);z-index:10"></div>
+    <div style="position:absolute;top:0;right:0;bottom:0;width:400px;z-index:11;background:#111317;border-left:2px solid #262a31;box-shadow:-8px 0 0 #000;display:flex;flex-direction:column">
+      <div style="padding:24px 24px 18px;display:flex;align-items:center;gap:12px">
+        <div style="flex:1;font-family:'Unbounded',sans-serif;font-size:20px;font-weight:700;color:#ecebe4;text-transform:uppercase">Настройки</div>
+        <div onClick="{{ closeSettings }}" style="width:34px;height:34px;border:2px solid #262a31;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#9a9ca6;cursor:pointer" style-hover="color:#ecebe4;border-color:#e6e6df">×</div>
+      </div>
+      <div style="margin:0 24px;display:flex;border:2px solid #262a31;border-radius:2px;overflow:hidden">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+          <div onClick="{{ t.pick }}" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700;background:{{ t.bg }};color:{{ t.color }}">{{ t.label }}</div>
+        </sc-for>
+      </div>
+
+      <div style="flex:1;overflow:auto;padding:22px 24px;display:flex;flex-direction:column;gap:26px">
+        <sc-if value="{{ tabMain }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ТОКЕН VK</div>
+            <div style="display:flex;gap:8px">
+              <input value="{{ tokenDraft }}" onChange="{{ onTokenDraft }}" placeholder="{{ tokenPlaceholder }}" style="flex:1;min-width:0;height:44px;border:2px solid #262a31;border-radius:2px;background:#0a0b0d;box-shadow:inset 2px 2px 0 #000;padding:0 14px;font-size:13px;color:#ecebe4;font-family:'JetBrains Mono',monospace;outline:none">
+              <div onClick="{{ saveToken }}" style="height:44px;padding:0 14px;border:2px solid #363b45;border-radius:2px;background:#191c21;display:flex;align-items:center;font-size:13px;font-weight:700;color:#e6e6df;cursor:pointer;box-shadow:3px 3px 0 #000" style-active="box-shadow:none;transform:translate(3px,3px)">Сохранить</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#9a9ca6"><div style="width:8px;height:8px;border-radius:2px;background:{{ tokenDot }}"></div>{{ tokenNote }}</div>
+            <div onClick="{{ getToken }}" style="font-size:12px;color:#9aa6ff;cursor:pointer;text-decoration:underline">Получить токен в браузере →</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ГЛУБИНА ПОИСКА</div>
+            <div style="display:flex;border:2px solid #262a31;border-radius:2px;overflow:hidden">
+              <sc-for list="{{ depthSeg }}" as="o" hint-placeholder-count="4">
+                <div onClick="{{ o.pick }}" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:700;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <sc-for list="{{ mainSliders }}" as="sl" hint-placeholder-count="1">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85"><span>{{ sl.label }}</span><span style="color:#ecebe4">{{ sl.display }}</span></div>
+              <input type="range" min="{{ sl.min }}" max="{{ sl.max }}" step="{{ sl.step }}" value="{{ sl.value }}" onChange="{{ sl.onChange }}" style="width:100%;accent-color:#7b8cff;margin:0">
+            </div>
+          </sc-for>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ mainToggles }}" as="t" hint-placeholder-count="4">
+              <div onClick="{{ t.toggle }}" style="display:flex;align-items:center;gap:14px;min-height:52px;cursor:pointer;border-bottom:1px solid #1c1f25">
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font-size:14px;font-weight:700;color:#e6e6df">{{ t.label }}</div><div style="font-size:12px;color:#767a85">{{ t.sub }}</div></div>
+                <div style="width:46px;height:26px;border:2px solid #000;border-radius:2px;position:relative;flex:none;background:{{ t.track }};box-shadow:2px 2px 0 #000"><div style="position:absolute;top:2px;width:18px;height:18px;border-radius:3px;border:2px solid #000;background:#ecebe4;left:{{ t.knobX }}"></div></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">КЭШ</div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#b8bac2"><span>{{ cacheProfiles }}</span><span>{{ cacheFriends }}</span></div>
+            <div onClick="{{ clearCache }}" style="height:44px;border:2px solid #000;border-radius:2px;background:#ff6b6b;color:#0a0b0d;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 #000" style-active="box-shadow:none;transform:translate(3px,3px)">{{ clearLabel }}</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ tabGraph }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">УЗЛЫ ПО УРОВНЯМ</div>
+            <sc-for list="{{ lvlStyles }}" as="ls" hint-placeholder-count="3">
+              <div style="display:flex;flex-direction:column;gap:8px;padding:10px;border:2px solid #262a31;border-radius:2px;background:#0d0f12">
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#e6e6df"><div style="width:12px;height:12px;background:{{ ls.color }};clip-path:{{ ls.clip }}"></div>{{ ls.label }}</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap">
+                  <sc-for list="{{ ls.colors }}" as="sw" hint-placeholder-count="8">
+                    <div onClick="{{ sw.pick }}" style="width:22px;height:22px;border-radius:2px;cursor:pointer;background:{{ sw.c }};border:2px solid {{ sw.border }};box-shadow:{{ sw.shadow }}"></div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:4px">
+                  <sc-for list="{{ ls.shapes }}" as="sh" hint-placeholder-count="5">
+                    <div onClick="{{ sh.pick }}" style="flex:1;height:28px;border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ sh.border }};background:{{ sh.bg }}"><div style="width:12px;height:12px;background:{{ sh.fill }};clip-path:{{ sh.clip }}"></div></div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ВИД</div>
+            <div style="display:flex;border:2px solid #262a31;border-radius:2px;overflow:hidden">
+              <sc-for list="{{ viewSeg }}" as="o" hint-placeholder-count="2">
+                <div onClick="{{ o.pick }}" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:700;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">УРОВНИ</div>
+            <div style="display:flex;gap:8px">
+              <sc-for list="{{ levelChips }}" as="c" hint-placeholder-count="3">
+                <div onClick="{{ c.toggle }}" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:2px;cursor:pointer;font-size:13px;font-weight:700;border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.color }}"><div style="width:10px;height:10px;border-radius:2px;border:1.5px solid #000;background:{{ c.dot }}"></div>{{ c.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ graphToggles }}" as="t" hint-placeholder-count="5">
+              <div onClick="{{ t.toggle }}" style="display:flex;align-items:center;gap:14px;min-height:52px;cursor:pointer;border-bottom:1px solid #1c1f25">
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font-size:14px;font-weight:700;color:#e6e6df">{{ t.label }}</div><div style="font-size:12px;color:#767a85">{{ t.sub }}</div></div>
+                <div style="width:46px;height:26px;border:2px solid #000;border-radius:2px;position:relative;flex:none;background:{{ t.track }};box-shadow:2px 2px 0 #000"><div style="position:absolute;top:2px;width:18px;height:18px;border-radius:3px;border:2px solid #000;background:#ecebe4;left:{{ t.knobX }}"></div></div>
+              </div>
+            </sc-for>
+          </div>
+          <sc-for list="{{ graphSliders }}" as="sl" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85"><span>{{ sl.label }}</span><span style="color:#ecebe4">{{ sl.display }}</span></div>
+              <input type="range" min="{{ sl.min }}" max="{{ sl.max }}" step="{{ sl.step }}" value="{{ sl.value }}" onChange="{{ sl.onChange }}" style="width:100%;accent-color:#7b8cff;margin:0">
+            </div>
+          </sc-for>
+        </sc-if>
+      </div>
+      <div style="padding:16px 24px 22px;border-top:2px solid #262a31;display:flex;gap:8px">
+        <div onClick="{{ resetCfg }}" style="height:44px;padding:0 16px;border:2px solid #363b45;border-radius:2px;background:#191c21;display:flex;align-items:center;font-size:13px;font-weight:700;color:#e6e6df;cursor:pointer">По умолчанию</div>
+        <div onClick="{{ closeSettings }}" style="flex:1;height:44px;border:2px solid #000;border-radius:2px;background:#7b8cff;color:#0a0b0d;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 #000" style-active="box-shadow:none;transform:translate(3px,3px)">Готово</div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0b0c0e"/><line x1="30" y1="50" x2="50" y2="35" stroke="#7b8cff" stroke-width="4"/><line x1="50" y1="35" x2="70" y2="55" stroke="#7b8cff" stroke-width="4"/><circle cx="30" cy="50" r="8" fill="#7b8cff" stroke="#000" stroke-width="2"/><circle cx="50" cy="35" r="6" fill="#4fd18b" stroke="#000" stroke-width="2"/><circle cx="70" cy="55" r="6" fill="#f2c14e" stroke="#000" stroke-width="2"/></svg></template></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;splash&quot;,&quot;home&quot;,&quot;graph&quot;],&quot;default&quot;:&quot;splash&quot;,&quot;tsType&quot;:&quot;'splash'|'home'|'graph'&quot;},&quot;autoAdvance&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;autoRotate&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:120,&quot;max&quot;:600,&quot;step&quot;:20,&quot;default&quot;:240,&quot;tsType&quot;:&quot;number&quot;}}">
+// The design is 1440x900. W and H follow the real window; BASE is what the
+// hand-placed numbers below were drawn against, so scenes scale from it.
+const BASE_W = 1440, BASE_H = 900;
+let W = BASE_W, H = BASE_H;
+const fit = () => Math.min(W / BASE_W, H / BASE_H);
+const LVL = ['#7b8cff', '#4fd18b', '#f2c14e'];
+const FN = ['Анна','Мария','Елена','Ольга','Дарья','Ирина','Наталья','Ксения','Алина','Софья','Иван','Сергей','Андрей','Максим','Артём','Никита','Егор','Кирилл','Олег','Михаил'];
+const LN = ['Смирнов','Кузнецов','Попов','Васильев','Петров','Новиков','Морозов','Волков','Лебедев','Козлов','Орлов','Зайцев','Павлов','Белов','Комаров','Фёдоров','Егоров','Гусев'];
+// What is remembered between runs. Per-session things - the open result, the
+// selection, a half-typed token - are deliberately not in this list.
+const PERSIST = ['cfg', 'lvlStyle', 'view', 'mode', 'from', 'to', 'relUser', 'center', 'src', 'people', 'histTab', 'sortBy', 'pathsN'];
+const CFG0 = { trim: false, maxNodes: 400, depth: 6, apiDelay: 0.35, cache: true, html: true, translit: true, notify: false, edges: true, labels: true, rotate: true, focus: true, glow: true, l1: true, l2: true, size: 1, edgeAlpha: 1, nodeDelay: 0.8, levelPause: 5 };
+const CITY = ['Москва','Москва','Москва','Санкт-Петербург','Санкт-Петербург','Казань','Новосибирск','Екатеринбург','Нижний Новгород'];
+const UNI = ['МГУ','СПбГУ','ВШЭ','МФТИ','МГТУ им. Баумана','КФУ','ИТМО','не указан','не указан'];
+const SCHOOL = ['Школа №57','Лицей №239','Гимназия №1543','Школа №179','Лицей «Вторая школа»','не указана','не указана'];
+const WORK = ['ВКонтакте','Яндекс','Сбер','Тинькофф','Ozon','фриланс','не указано','не указано'];
+const AGE = (a) => a < 18 ? 'до 18' : a < 25 ? '18–24' : a < 35 ? '25–34' : '35+';
+const FIELDS = [['city','Город'],['uni','Вуз'],['school','Школа'],['work','Работа'],['age','Возраст']];
+const MODES = [
+  { id: 'chain', label: 'Цепочка', title: 'Через кого вы знакомы?', desc: 'Кратчайшая цепочка рукопожатий между двумя людьми.', run: 'Найти цепочку' },
+  { id: 'relatives', label: 'Родня', title: 'Родственники и однофамильцы', desc: 'Люди с похожей фамилией вокруг пользователя. Учитывает корень и транслит.', run: 'Найти' },
+  { id: 'explore', label: 'Граф', title: 'Граф друзей', desc: 'Сеть строится кольцами: друзья, затем друзья друзей.', run: 'Построить' },
+  { id: 'intersect', label: 'Пересечения', short: 'Общие друзья 2–5 человек', title: 'Пересечения', desc: 'Общие друзья и связи между несколькими людьми.', run: 'Найти', extra: true },
+  { id: 'clusters', label: 'Круги общения', short: 'Группы друзей по связям', title: 'Круги общения', desc: 'Друзья, разбитые на группы по плотности связей.', run: 'Найти круги', extra: true },
+];
+const RGB = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const shade = (h, k) => { const c = RGB(h); return 'rgb(' + c.map(v => Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k))).join(',') + ')'; };
+const SHADES = {};
+const shades = (h) => SHADES[h] || (SHADES[h] = [shade(h, 0.65), shade(h, 0.15), h, shade(h, -0.55), shade(h, -0.8)]);
+const PALETTE = ['#7b8cff', '#4fd18b', '#f2c14e', '#ff7ac6', '#ff6b6b', '#5ad1e6', '#b98cff', '#e6e6df'];
+const SHAPES = [['circle', 'circle(50%)'], ['square', 'inset(8%)'], ['diamond', 'polygon(50% 0,100% 50%,50% 100%,0 50%)'], ['triangle', 'polygon(50% 4%,100% 92%,0 92%)'], ['hex', 'polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%)']];
+const CLIP = Object.fromEntries(SHAPES);
+function shapePath(ctx, sh, x, y, r) {
+  ctx.beginPath();
+  if (sh === 'square') { const a = r * 0.86; ctx.rect(x - a, y - a, a * 2, a * 2); }
+  else if (sh === 'diamond') { ctx.moveTo(x, y - r * 1.15); ctx.lineTo(x + r * 1.15, y); ctx.lineTo(x, y + r * 1.15); ctx.lineTo(x - r * 1.15, y); ctx.closePath(); }
+  else if (sh === 'triangle') { const a = r * 1.25; ctx.moveTo(x, y - a); ctx.lineTo(x + a * 0.95, y + a * 0.6); ctx.lineTo(x - a * 0.95, y + a * 0.6); ctx.closePath(); }
+  else if (sh === 'hex') { for (let k = 0; k < 6; k++) { const t = k * Math.PI / 3; ctx[k ? 'lineTo' : 'moveTo'](x + Math.cos(t) * r * 1.05, y + Math.sin(t) * r * 1.05); } ctx.closePath(); }
+  else ctx.arc(x, y, r, 0, 7);
+}
+const MESH = (() => {
+  const sc = (v, k) => v.map(p => p.map(c => c * k));
+  const cube = { v: sc([[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]], 0.78), f: [[0,1,2,3],[5,4,7,6],[4,0,3,7],[1,5,6,2],[4,5,1,0],[3,2,6,7]] };
+  const octaF = []; for (const x of [0, 1]) for (const y of [2, 3]) for (const z of [4, 5]) octaF.push([x, y, z]);
+  const diamond = { v: sc([[1,0,0],[-1,0,0],[0,1.25,0],[0,-1.25,0],[0,0,1],[0,0,-1]], 1.05), f: octaF };
+  const triangle = { v: sc([[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]], 0.85), f: [[0,1,2],[0,1,3],[0,2,3],[1,2,3]] };
+  const hv = []; for (const y of [-0.6, 0.6]) for (let k = 0; k < 6; k++) { const t = k * Math.PI / 3; hv.push([Math.cos(t) * 1.05, y, Math.sin(t) * 1.05]); }
+  const hf = [[0,1,2,3,4,5],[6,7,8,9,10,11]]; for (let k = 0; k < 6; k++) hf.push([k, (k + 1) % 6, (k + 1) % 6 + 6, k + 6]);
+  return { square: cube, diamond, triangle, hex: { v: hv, f: hf } };
+})();
+const LIGHT = (() => { const l = [-0.45, -0.65, -0.62], n = Math.hypot(...l); return l.map(v => v / n); })();
+const FRONT_A = '#7b8cff', FRONT_B = '#ff7ac6';
+function rng(s) { return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+// <layout>
+/// Turns a back-end result into a graph this screen can draw.
+///
+/// Ids become indices, repeated links are folded into one (a link sent twice
+/// is drawn twice, and the doubled line shows as a brighter streak), and every
+/// node gets a depth: its distance in hops from the nearest root.
+function prepareGraph(res) {
+  const path = (res.paths && res.paths[0]) || [];
+  const rootIds = path.length ? [path[0]] : (res.roots || (res.root != null ? [res.root] : []));
+  const idx = new Map(), ids = [];
+  const take = (id) => { if (!idx.has(id)) { idx.set(id, ids.length); ids.push(id); } return idx.get(id); };
+  rootIds.forEach(take);
+  (res.edges || []).forEach(([a, b]) => { take(a); take(b); });
+  (res.paths || []).forEach(pp => pp.forEach(take));
+
+  const edges = [], seen = new Set();
+  (res.edges || []).forEach(([a, b]) => {
+    const x = idx.get(a), y = idx.get(b);
+    if (x === y) return;
+    const key = x < y ? x * 1048576 + y : y * 1048576 + x;
+    if (seen.has(key)) return;
+    seen.add(key);
+    edges.push([x, y]);
+  });
+  const nb = ids.map(() => []);
+  edges.forEach(([a, b]) => { nb[a].push(b); nb[b].push(a); });
+
+  const roots = rootIds.map(r => idx.get(r)).filter(i => i != null);
+  const depth = new Array(ids.length).fill(-1);
+  const q = [];
+  roots.forEach(r => { depth[r] = 0; q.push(r); });
+  for (let h = 0; h < q.length; h++) {
+    const u = q[h];
+    for (const v of nb[u]) if (depth[v] < 0) { depth[v] = depth[u] + 1; q.push(v); }
+  }
+  // Anyone the root cannot reach goes one ring beyond the farthest reached,
+  // rather than being dropped: they are in the result for a reason.
+  const far = depth.reduce((m, d) => Math.max(m, d), 0);
+  for (let i = 0; i < depth.length; i++) if (depth[i] < 0) depth[i] = far + 1;
+  return { ids, idx, edges, nb, roots, depth };
+}
+
+/// Places every node for the 3D and the 2D view at once.
+///
+/// A force simulation seeded from a concentric arrangement. The seed gives
+/// each depth its own ring and starts every person beside whoever introduced
+/// them; the simulation then lets the real links decide the rest. Concentric
+/// alone looked like a target with dots on it, and a plain force layout
+/// looks like a hairball with no centre. Together they read as a social
+/// graph with one person in the middle.
+///
+/// Writes p3, p2 and ang onto each node. Returns the outermost radius in each
+/// view, so the camera can be fitted to the result.
+function layoutGraph(nodes, edges, depth, roots, centreOnBox) {
+  const n = nodes.length;
+  if (!n) return { r2: 1, r3: 1 };
+  const maxD = depth.reduce((m, d) => Math.max(m, d), 0);
+  const cnt = new Array(maxD + 1).fill(0);
+  depth.forEach(d => cnt[d]++);
+  const nb = nodes.map(() => []);
+  edges.forEach(([a, b]) => { nb[a].push(b); nb[b].push(a); });
+  const order = nodes.map((_, i) => i).sort((a, b) => depth[a] - depth[b]);
+  const pinned = roots.length === 1 ? roots[0] : -1;
+  const out = { r2: 1, r3: 1, fx: 1, fy: 1 };
+
+  for (const D of [2, 3]) {
+    const R = rng(23 + D);
+    const ringR = (d) => {
+      if (d === 0) return roots.length > 1 ? 36 + roots.length * 12 : 0;
+      const base = D === 2 ? 115 + d * 115 : 100 + d * 95;
+      // A ring has to be long enough to hold the people on it.
+      const need = D === 2 ? cnt[d] * 12 / (2 * Math.PI) : Math.sqrt(cnt[d] * 300 / (4 * Math.PI));
+      return Math.max(base, need);
+    };
+    const fib = (k, tot) => {
+      if (D === 2) { const a = k * 2.39996; return [Math.cos(a), Math.sin(a), 0]; }
+      const y = 1 - 2 * (k + 0.5) / Math.max(1, tot), r = Math.sqrt(Math.max(0, 1 - y * y)), th = k * 2.39996;
+      return [Math.cos(th) * r, y, Math.sin(th) * r];
+    };
+
+    // -- seed ------------------------------------------------------------
+    const P = new Float32Array(n * 3), placed = new Uint8Array(n);
+    const nextAt = new Array(maxD + 1).fill(0);
+    for (const i of order) {
+      const d = depth[i];
+      let v = [0, 0, 0], m = 0, parent = -1;
+      for (const u of nb[i]) {
+        if (placed[u] && depth[u] === d - 1) {
+          v[0] += P[u * 3]; v[1] += P[u * 3 + 1]; v[2] += P[u * 3 + 2]; m++;
+          if (parent < 0) parent = u;
+        }
+      }
+      let len = Math.hypot(v[0], v[1], v[2]);
+      if (d === 0 || !m || len < 1e-3) { v = fib(nextAt[d]++, cnt[d]); len = 1; }
+      // Siblings of a well-connected person start in a wider patch.
+      const spread = d === 0 ? 0 : Math.min(90, 8 + 4 * Math.sqrt(parent >= 0 ? nb[parent].length : 1));
+      const rr = ringR(d);
+      P[i * 3] = v[0] / len * rr + (R() - 0.5) * spread;
+      P[i * 3 + 1] = v[1] / len * rr + (R() - 0.5) * spread;
+      P[i * 3 + 2] = D === 3 ? v[2] / len * rr + (R() - 0.5) * spread : 0;
+      placed[i] = 1;
+    }
+    if (pinned >= 0) { P[pinned * 3] = P[pinned * 3 + 1] = P[pinned * 3 + 2] = 0; }
+
+    // -- relax -----------------------------------------------------------
+    const K = D === 2 ? 24 : 28;
+    const iters = n <= 250 ? 260 : n <= 500 ? 180 : n <= 900 ? 120 : 70;
+    const cut2 = (K * 8) * (K * 8);
+    const disp = new Float32Array(n * 3);
+    for (let it = 0; it < iters; it++) {
+      const temp = K * 3.5 * (1 - it / iters) + 1.2;
+      disp.fill(0);
+      for (let i = 0; i < n; i++) {
+        const xi = P[i * 3], yi = P[i * 3 + 1], zi = P[i * 3 + 2];
+        for (let j = i + 1; j < n; j++) {
+          let dx = xi - P[j * 3], dy = yi - P[j * 3 + 1], dz = D === 3 ? zi - P[j * 3 + 2] : 0;
+          let d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 > cut2) continue;
+          if (d2 < 0.01) { dx = R() - 0.5; dy = R() - 0.5; dz = D === 3 ? R() - 0.5 : 0; d2 = dx * dx + dy * dy + dz * dz + 0.01; }
+          const f = K * K / d2;
+          disp[i * 3] += dx * f; disp[i * 3 + 1] += dy * f; disp[i * 3 + 2] += dz * f;
+          disp[j * 3] -= dx * f; disp[j * 3 + 1] -= dy * f; disp[j * 3 + 2] -= dz * f;
+        }
+      }
+      for (const [a, b] of edges) {
+        const dx = P[a * 3] - P[b * 3], dy = P[a * 3 + 1] - P[b * 3 + 1], dz = D === 3 ? P[a * 3 + 2] - P[b * 3 + 2] : 0;
+        const d = Math.sqrt(dx * dx + dy * dy + dz * dz) + 0.01, f = 0.5 * d / K;
+        disp[a * 3] -= dx * f; disp[a * 3 + 1] -= dy * f; disp[a * 3 + 2] -= dz * f;
+        disp[b * 3] += dx * f; disp[b * 3 + 1] += dy * f; disp[b * 3 + 2] += dz * f;
+      }
+      for (let i = 0; i < n; i++) {
+        const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2], r = Math.sqrt(x * x + y * y + z * z);
+        if (r > 1e-3) {
+          const pull = (ringR(depth[i]) - r) * 0.22 / r;
+          disp[i * 3] += x * pull; disp[i * 3 + 1] += y * pull; disp[i * 3 + 2] += z * pull;
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        if (i === pinned) continue;
+        const dx = disp[i * 3], dy = disp[i * 3 + 1], dz = disp[i * 3 + 2];
+        const m = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (m < 1e-6) continue;
+        const s = Math.min(m, temp) / m;
+        P[i * 3] += dx * s; P[i * 3 + 1] += dy * s; P[i * 3 + 2] += dz * s;
+      }
+    }
+
+    // -- write back --------------------------------------------------------
+    // An ego graph stays centred on its person. A chain does not have one
+    // person to centre on - it runs from one end to the other - so it is
+    // centred on its own bounding box, or it sits to one side of the window.
+    let ox = 0, oy = 0, oz = 0;
+    if (centreOnBox) {
+      let lx = 1e9, hx = -1e9, ly = 1e9, hy = -1e9, lz = 1e9, hz = -1e9;
+      for (let i = 0; i < n; i++) {
+        lx = Math.min(lx, P[i * 3]); hx = Math.max(hx, P[i * 3]);
+        ly = Math.min(ly, P[i * 3 + 1]); hy = Math.max(hy, P[i * 3 + 1]);
+        lz = Math.min(lz, P[i * 3 + 2]); hz = Math.max(hz, P[i * 3 + 2]);
+      }
+      ox = (lx + hx) / 2; oy = (ly + hy) / 2; oz = D === 3 ? (lz + hz) / 2 : 0;
+    }
+    let far = 1, fx = 1, fy = 1;
+    for (let i = 0; i < n; i++) {
+      const x = P[i * 3] - ox, y = P[i * 3 + 1] - oy, z = P[i * 3 + 2] - oz;
+      far = Math.max(far, Math.sqrt(x * x + y * y + z * z));
+      fx = Math.max(fx, Math.abs(x)); fy = Math.max(fy, Math.abs(y));
+      if (D === 3) nodes[i].p3 = [x, y, z]; else { nodes[i].p2 = [x, y]; nodes[i].ang = Math.atan2(y, x); }
+    }
+    out[D === 3 ? 'r3' : 'r2'] = far;
+    if (D === 2) { out.fx = fx; out.fy = fy; }
+  }
+  return out;
+}
+
+/// The links worth drawing when the picture is trimmed.
+///
+/// In a social graph most links are spokes out of a few hubs, and they bury
+/// the ones that say anything: who belongs to the same circle. So each person
+/// keeps only the links to the neighbours they share the most friends with
+/// (Jaccard similarity), and how many they keep grows slowly with how many
+/// they have. A hub's spokes score low - its neighbourhood is huge - and fall
+/// away, while links inside a circle score high and stay. A person with a
+/// single link keeps it, so nobody is left floating.
+///
+/// What is left can fall into pieces, so the pieces are rejoined with as few
+/// links as possible, taking the ones that point back towards the centre.
+/// The chain itself is always kept.
+function skeleton(nodes, edges, depth, paths) {
+  const n = nodes.length, keep = new Array(edges.length).fill(false);
+  const nbSet = nodes.map(() => new Set()), inc = nodes.map(() => []);
+  edges.forEach(([a, b], k) => { nbSet[a].add(b); nbSet[b].add(a); inc[a].push(k); inc[b].push(k); });
+  const sim = edges.map(([a, b]) => {
+    const [s, l] = nbSet[a].size <= nbSet[b].size ? [nbSet[a], nbSet[b]] : [nbSet[b], nbSet[a]];
+    let common = 0;
+    s.forEach(x => { if (l.has(x)) common++; });
+    return common / (nbSet[a].size + nbSet[b].size - common || 1);
+  });
+  for (let i = 0; i < n; i++) {
+    const take = Math.max(1, Math.ceil(Math.pow(inc[i].length, 0.55)));
+    inc[i].slice().sort((p, q) => sim[q] - sim[p]).slice(0, take).forEach(k => { keep[k] = true; });
+  }
+  const onPath = new Set();
+  (paths || []).forEach(pp => { for (let i = 0; i + 1 < pp.length; i++) { onPath.add(pp[i] + ',' + pp[i + 1]); onPath.add(pp[i + 1] + ',' + pp[i]); } });
+  edges.forEach(([a, b], k) => { if (onPath.has(a + ',' + b)) keep[k] = true; });
+
+  // Rejoin the pieces, shallowest links first.
+  const up = Array.from({ length: n }, (_, i) => i);
+  const find = (x) => { while (up[x] !== x) { up[x] = up[up[x]]; x = up[x]; } return x; };
+  edges.forEach(([a, b], k) => { if (keep[k]) up[find(a)] = find(b); });
+  const towards = [];
+  edges.forEach(([a, b], k) => {
+    if (!keep[k] && depth[a] !== depth[b]) towards.push([k, Math.max(depth[a], depth[b])]);
+  });
+  towards.sort((p, q) => p[1] - q[1]);
+  for (const [k] of towards) {
+    const [a, b] = edges[k];
+    if (find(a) !== find(b)) { keep[k] = true; up[find(a)] = find(b); }
+  }
+  return keep;
+}
+// </layout>
+
+
+class Component extends DCLogic {
+  state = { lvlStyle: [{ color: LVL[0], shape: 'circle' }, { color: LVL[1], shape: 'circle' }, { color: LVL[2], shape: 'circle' }], nodeStyle: {}, pathIdx: 0, pathsOpen: false, q: '', sortBy: 'city', filters: {}, filtersOpen: false, histOpen: false, histTab: 'all', cfg: { ...CFG0 }, settings: null, screen: null, boot: 0, mode: 'chain', more: false, view: '3d', paused: false, sel: null, dragging: false,
+    pathsN: 1, tokenDraft: '', confirmClear: false, err: null,
+    from: 'durov', to: 'id742860134', relUser: 'durov', center: 'durov',
+    src: { f1: true, f2: true, city: true, school: false, groups: false }, people: ['durov', 'id3291847', 'id742860134'] };
+  canvasRef = React.createRef();
+  cam = { cx: W / 2, cy: H / 2 - 80, zoom: 0.8, dim: 1, flat: 0, hl: 0, rot: 0, tilt: 0.38, sf: 0 };
+  user = { panX: 0, panY: 0, zoom: 1, tilt: 0 };
+
+  /// Reads the window's size into W and H and re-aims the camera at the
+  /// centre of what is now on screen.
+  measure() {
+    const w = Math.max(640, window.innerWidth), h = Math.max(480, window.innerHeight);
+    if (w === W && h === H) return;
+    W = w; H = h;
+    this.retarget();
+    this.forceUpdate();
+  }
+
+  componentDidMount() {
+    // A handle for the self-test, which drives the real window headlessly.
+    window.vkApp = this;
+    this.onResize = () => this.measure();
+    window.addEventListener('resize', this.onResize);
+    W = Math.max(640, window.innerWidth); H = Math.max(480, window.innerHeight);
+    window.vkChainProgress = (e) => this.onProgress(e);
+    this.onKey = (e) => { if (e.key === 'F11') { e.preventDefault(); this.toggleFull(); } };
+    window.addEventListener('keydown', this.onKey);
+    this.build();
+    // pywebview injects its bridge after the page is up, so asking for the
+    // status at mount always missed it and the window claimed there was no
+    // token. Wait for the bridge, then ask.
+    this.whenReady(async () => { await this.restore(); this.pullStatus(); this.pullHistory(); });
+    this.setScreen(this.props.startScreen ?? 'splash', true);
+    this.last = performance.now();
+    const loop = (now) => { this.raf = requestAnimationFrame(loop); try { this.frame(now); } catch (e) { if (!this.errLogged) { console.error(e); this.errLogged = true; } } };
+    this.raf = requestAnimationFrame(loop);
+  }
+  componentWillUnmount() { clearInterval(this.saveTimer); window.removeEventListener('resize', this.onResize); window.removeEventListener('keydown', this.onKey); cancelAnimationFrame(this.raf); clearInterval(this.tick); (this.timers || []).forEach(clearTimeout); }
+  componentDidUpdate(pp) {
+    if (pp.density !== this.props.density) this.build();
+    if (pp.startScreen !== this.props.startScreen) this.setScreen(this.props.startScreen ?? 'splash');
+  }
+
+  /// Where the camera rests for a screen, in the window's own units.
+  ///
+  /// The form on the home screen takes the left third, so the graph there
+  /// sits in the middle of what is left, not at a pixel position that only
+  /// suited a 1440-wide window.
+  targetFor(screen) {
+    const k = fit();
+    return {
+      splash: { cx: W / 2, cy: H / 2 - 110 * k, zoom: 0.72 * k, dim: 1 },
+      home:   { cx: W * 0.70, cy: H / 2 + 10 * k, zoom: 0.95 * k, dim: 0.85 },
+      graph:  { cx: W / 2, cy: H / 2 + 10 * k, zoom: 0.85 * k, dim: 1 },
+      search: { cx: W / 2, cy: H / 2 - 30 * k, zoom: 0.85 * k, dim: 1 },
+    }[screen];
+  }
+
+  /// After a resize: aim at the new centre without waiting for the easing.
+  retarget() {
+    if (!this.screenName) return;
+    this.target = this.targetFor(this.screenName);
+    Object.assign(this.cam, this.target);
+  }
+
+  setScreen(screen, snap) {
+    (this.timers || []).forEach(clearTimeout); this.timers = [];
+    this.screenName = screen;
+    this.target = this.targetFor(screen);
+    clearInterval(this.tick); this.searchT0 = null;
+    if (snap) Object.assign(this.cam, this.target);
+    if (screen === 'splash') {
+      this.t0 = performance.now(); this.revealRate = 1;
+      this.setState({ screen, boot: 0, sel: null });
+      [500, 1100, 1700, 2400, 3100].forEach((ms, i) => this.timers.push(setTimeout(() => this.setState({ boot: i + 1 }), ms)));
+      if (this.props.autoAdvance ?? true) this.timers.push(setTimeout(() => this.setScreen('home'), 4000));
+    } else if (screen === 'search') {
+      this.t0 = null; this.searchT0 = performance.now(); this.selPath = null;
+      this.setState({ screen, sel: null, searchP: 0, settings: null });
+      this.tick = setInterval(() => this.setState({ searchP: (performance.now() - this.searchT0) / 1000 }), 80);
+      // With a back end the screen waits for its result; without one it is
+      // still a demo, so the old timer stands in.
+      if (!this.api()) this.timers.push(setTimeout(() => this.setScreen('graph'), 3600));
+    } else if (screen === 'graph') {
+      this.t0 = performance.now(); this.revealRate = 1.6;
+      if (!snap) { this.cam.zoom *= 0.55; }
+      this.setState({ screen, more: false });
+    } else {
+      this.t0 = null;
+      // Leaving a result behind: the background goes back to the cover.
+      if (screen === 'home' || screen === 'splash') {
+        this.showCover();
+        // Anything dragged, zoomed or tilted while looking at a result must
+        // not leak into the cover: it is always shown from the same angle,
+        // around the same centre.
+        this.user = { panX: 0, panY: 0, zoom: 1, tilt: 0 };
+        this.cam.rot = 0;
+        this.cam.sf = 0;
+      }
+      this.setState({ screen, more: false, sel: null });
+    }
+  }
+
+  build() {
+    const R = rng(7), N1 = 38, N2 = this.props.density ?? 240;
+    const nodes = [], edges = [];
+    const nm = () => { const f = FN[Math.floor(R() * FN.length)], l = LN[Math.floor(R() * LN.length)]; const fem = /[ая]$/.test(f) && f !== 'Никита'; return f + ' ' + (fem ? l + 'а' : l); };
+    nodes.push({ lvl: 0, p3: [0, 0, 0], p2: [0, 0], t: 0, name: 'Павел Дуров', ang: 0 });
+    for (let i = 0; i < N1; i++) {
+      const y = 1 - 2 * (i + 0.5) / N1, r = Math.sqrt(1 - y * y), th = i * 2.39996, rad = 165 + R() * 25, ang = i / N1 * Math.PI * 2;
+      nodes.push({ lvl: 1, p3: [Math.cos(th) * r * rad, y * rad, Math.sin(th) * r * rad], p2: [Math.cos(ang) * 190, Math.sin(ang) * 190], ang, t: 0.3 + i * 0.022, name: nm() });
+      edges.push([0, nodes.length - 1]);
+    }
+    const mid = 6; nodes[mid].name = 'Дмитрий Соколов';
+    for (let j = 0; j < N2; j++) {
+      const par = j === 0 ? mid : 1 + Math.floor(R() * N1), pd = nodes[par];
+      const d = pd.p3.map(v => v + (R() - 0.5) * 220), len = Math.hypot(...d), rad = 290 + R() * 90;
+      const ang = pd.ang + (R() - 0.5) * (Math.PI * 2 / N1) * 2.4, r2 = 320 + R() * 110;
+      nodes.push({ lvl: 2, p3: d.map(v => v / len * rad), p2: [Math.cos(ang) * r2, Math.sin(ang) * r2], ang, t: 1.25 + j * (1.6 / N2), name: nm() });
+      edges.push([par, nodes.length - 1]);
+    }
+    const end = N1 + 1; nodes[end].name = 'Алексей Иванов';
+    const pk = (a) => a[Math.floor(R() * a.length)];
+    nodes.forEach(n => { n.city = pk(CITY); n.uni = pk(UNI); n.school = pk(SCHOOL); n.work = pk(WORK); n.ageN = 16 + Math.floor(R() * 30); n.age = AGE(n.ageN); });
+    Object.assign(nodes[0], { city: 'Санкт-Петербург', uni: 'СПбГУ', school: 'Гимназия №1543', work: 'не указано' });
+    for (let k = 0; k < 20; k++) edges.push([1 + Math.floor(R() * N1), 1 + Math.floor(R() * N1)]);
+    for (let k = 0; k < N2 * 0.25; k++) { const a = N1 + 1 + Math.floor(R() * N2), b = N1 + 1 + Math.floor(R() * N2); if (Math.abs(nodes[a].ang - nodes[b].ang) < 0.5) edges.push([a, b]); }
+    const nb = nodes.map(() => []);
+    edges.forEach(([a, b]) => { if (a !== b) { nb[a].push(b); nb[b].push(a); } });
+    this.g = { nodes, edges, nb, N1, N2 };
+    [12, 20, 29].forEach(x => { nb[x].push(end); nb[end].push(x); edges.push([x, end]); });
+    this.paths = nb[end].filter(x => nodes[x].lvl === 1).sort((a, b) => (b === mid) - (a === mid)).map(x => [0, x, end]);
+    this.chain = this.paths[this.state.pathIdx] || this.paths[0];
+    const bfs = (src) => { const d = new Array(nodes.length).fill(99); d[src] = 0; const q = [src]; while (q.length) { const u = q.shift(); for (const v of nb[u]) if (d[v] === 99) { d[v] = d[u] + 1; q.push(v); } } return d; };
+    this.dA = bfs(0); this.dB = bfs(end);
+    // The opening graph is kept aside. Splash and home always show this one,
+    // whatever a later search produced: it is the picture the program opens
+    // with, not a leftover of the last thing that was looked for.
+    this.g.keep = skeleton(nodes, edges, nodes.map(n => n.lvl), this.paths);
+    this.fit2 = this.fit3 = 1;
+    this.cover = { g: this.g, paths: this.paths, chain: this.chain, dA: this.dA, dB: this.dB };
+    this.forceUpdate();
+  }
+
+  /// Puts the opening graph back on screen.
+  showCover() {
+    if (!this.cover) return;
+    this.g = this.cover.g; this.paths = this.cover.paths;
+    this.chain = this.cover.chain; this.dA = this.cover.dA; this.dB = this.cover.dB;
+    this.fit2 = this.fit3 = 1;
+  }
+
+  // ---- back end ------------------------------------------------------
+
+  /// The Python side, when running inside the desktop window.
+  api() { return window.pywebview && window.pywebview.api; }
+
+  /// Full screen, through the window itself when there is one.
+  toggleFull() {
+    const api = this.api();
+    if (api && api.toggle_fullscreen) {
+      api.toggle_fullscreen();
+    } else if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  }
+
+  /// Runs `cb` once the bridge exists; immediately if it already does. With
+  /// no bridge at all (the file opened by itself) it runs after a moment, so
+  /// storage-backed settings still load.
+  whenReady(cb) {
+    if (this.api()) { cb(); return; }
+    window.addEventListener('pywebviewready', () => { clearTimeout(this.noBridge); cb(); }, { once: true });
+    this.noBridge = setTimeout(() => { if (!this.api()) cb(); }, 1500);
+  }
+
+  /// Shows a message and lets it go by itself.
+  showErr(msg) {
+    this.setState({ err: String(msg || 'ошибка') });
+    clearTimeout(this.errTimer);
+    this.errTimer = setTimeout(() => this.setState({ err: null }), 9000);
+  }
+
+  async saveToken() {
+    const api = this.api(), raw = (this.state.tokenDraft || '').trim();
+    if (!raw) return;
+    if (!api) { this.showErr('токен можно сохранить только в приложении'); return; }
+    try {
+      const r = await api.set_token(raw);
+      if (r && r.ok) { this.setState({ tokenDraft: '' }); await this.pullStatus(); }
+      else this.showErr((r && r.error) || 'токен не принят');
+    } catch (e) { this.showErr(e); }
+  }
+
+  /// Opens VK's sign-in page; the address it ends on holds the token.
+  getToken() {
+    const api = this.api();
+    if (api && api.open_token_page) api.open_token_page();
+    else window.open('https://oauth.vk.ru/authorize?client_id=54574312&display=page&redirect_uri=https://oauth.vk.ru/blank.html&scope=2&response_type=token&v=5.131', '_blank');
+  }
+
+  /// Two presses: the first arms it, the second deletes. Clearing the cache
+  /// throws away hours of requests, so one stray click must not do it.
+  async clearCache() {
+    const api = this.api();
+    if (!this.state.confirmClear) {
+      this.setState({ confirmClear: true });
+      clearTimeout(this.confirmTimer);
+      this.confirmTimer = setTimeout(() => this.setState({ confirmClear: false }), 4000);
+      return;
+    }
+    clearTimeout(this.confirmTimer);
+    this.setState({ confirmClear: false });
+    if (api) { try { await api.clear_cache(); } catch (e) { this.showErr(e); } }
+    this.pullStatus();
+  }
+
+  // ---- settings that survive a restart --------------------------------------
+
+  /// Everything the person can set, and nothing that belongs to one session.
+  persisted() {
+    const s = this.state, o = {};
+    for (const k of PERSIST) o[k] = s[k];
+    return o;
+  }
+
+  async restore() {
+    const api = this.api();
+    let saved = null;
+    try {
+      saved = api ? await api.get_settings() : JSON.parse(localStorage.getItem('vkchain.settings') || 'null');
+    } catch (e) { saved = null; }
+    const next = {};
+    if (saved && typeof saved === 'object') {
+      for (const k of PERSIST) if (saved[k] !== undefined) next[k] = saved[k];
+      // New settings added since it was saved must keep their defaults.
+      if (next.cfg) next.cfg = { ...CFG0, ...next.cfg };
+      if (next.lvlStyle && next.lvlStyle.length !== 3) delete next.lvlStyle;
+    }
+    this.hadSaved = saved && saved.from !== undefined;
+    if (next.view) this.cam.flat = next.view === '2d' ? 1 : 0;
+    this.lastSaved = JSON.stringify(this.persistedWith(next));
+    this.setState(next);
+    this.settingsLoaded = true;
+    this.saveTimer = setInterval(() => this.flushSettings(), 700);
+    window.addEventListener('beforeunload', () => this.flushSettings());
+  }
+
+  persistedWith(next) {
+    const s = { ...this.state, ...next }, o = {};
+    for (const k of PERSIST) o[k] = s[k];
+    return o;
+  }
+
+  flushSettings() {
+    if (!this.settingsLoaded) return;
+    const snap = JSON.stringify(this.persisted());
+    if (snap === this.lastSaved) return;
+    this.lastSaved = snap;
+    const api = this.api();
+    try {
+      if (api) api.save_settings(JSON.parse(snap));
+      else localStorage.setItem('vkchain.settings', snap);
+    } catch (e) { /* storage can be unavailable; the app still works */ }
+  }
+
+  /// On a first run there is nothing saved, and the form would otherwise be
+  /// full of the design's sample names. Fill it with the person who signed in.
+  seedFromMe(st) {
+    if (this.hadSaved || this.seeded || !st || !st.me) return;
+    this.seeded = true;
+    const me = 'id' + st.me.id;
+    this.setState({ from: me, relUser: me, center: me, to: '', people: [me] });
+  }
+
+  async pullHistory() {
+    const api = this.api();
+    if (!api) return;
+    try { this.setState({ hist: await api.history() }); } catch (e) { console.error(e); }
+  }
+
+  async pullStatus() {
+    const api = this.api();
+    if (!api) return;
+    try {
+      const st = await api.status();
+      this.setState({ status: st });
+      this.seedFromMe(st);
+    } catch (e) { console.error(e); }
+  }
+
+  /// Starts the search the current mode describes.
+  launch() {
+    const api = this.api(), s = this.state;
+    if (!api) { this.setScreen('search'); return; }   // demo, no back end
+    this.setState({ err: null });
+    this.fronts = { A: 0, B: 0, checked: { A: 0, B: 0 } };
+    this.metVia = null;
+    this.checkedTotal = 0;
+    this.setScreen('search');
+    const opts = { include_relatives: !!s.src.f2, deep: !!s.cfg.deep, levels: s.cfg.depth, paths: s.pathsN || 1, max_nodes: s.cfg.maxNodes || 400 };
+    const call =
+      s.mode === 'chain'     ? api.chain(s.from, s.to, opts)
+    : s.mode === 'relatives' ? api.relatives(s.relUser, opts)
+    : s.mode === 'intersect' ? api.intersect(s.people.filter(Boolean))
+    : s.mode === 'clusters'  ? api.clusters(s.center, opts)
+    :                          api.explore(s.center, opts);
+    Promise.resolve(call).catch(e => this.onProgress({ type: 'error', message: String(e) }));
+  }
+
+  /// One event from the back end: a front moved, the two met, or it is done.
+  onProgress(e) {
+    if (!e || !e.type) return;
+    if (e.type === 'front') {
+      const f = this.fronts || (this.fronts = { A: 0, B: 0, checked: { A: 0, B: 0 } });
+      f[e.side] = e.level; f.checked[e.side] = e.checked;
+      this.checkedTotal = f.checked.A + f.checked.B;
+      this.setState({ searchP: (performance.now() - (this.searchT0 || performance.now())) / 1000 });
+      return;
+    }
+    if (e.type === 'meet') { this.metVia = e.via; return; }
+    if (e.type === 'error') {
+      this.showErr(e.message);
+      this.setScreen('home');
+      return;
+    }
+    if (e.type === 'result') { this.applyResult(e); }
+  }
+
+  /// Turns the back end's result into the graph this screen draws.
+  ///
+  /// The shape has to match what build() produces, because everything after
+  /// this - camera, filters, the card - reads that shape.
+  applyResult(res) {
+    const prof = res.profiles || {};
+    const G = prepareGraph(res);
+    if (!G.ids.length) { this.setState({ err: 'пусто' }); this.setScreen('home'); return; }
+    const hasPath = !!(res.paths && res.paths.length && res.paths[0].length > 1);
+
+    const nodes = G.ids.map((id, i) => {
+      const d = G.depth[i], pr = prof[String(id)] || {};
+      return {
+        lvl: Math.min(d, 2), id, depth: d,
+        name: pr.name || String(id),
+        p3: [0, 0, 0], p2: [0, 0], ang: 0,
+        t: 0,
+        city: pr.city || '', uni: pr.uni || '', school: pr.school || '', work: pr.work || '',
+        ageN: pr.ageN || 0, age: pr.age || '',
+      };
+    });
+    const far = layoutGraph(nodes, G.edges, G.depth, G.roots, hasPath);
+
+    // Appear ring by ring, the way the design opens its own mock graph.
+    const seenAt = [], perD = [];
+    G.depth.forEach(d => { perD[d] = (perD[d] || 0) + 1; });
+    nodes.forEach((n, i) => {
+      const d = G.depth[i], k = (seenAt[d] = (seenAt[d] || 0) + 1) - 1;
+      n.t = d === 0 ? 0 : 0.25 + (d - 1) * 0.5 + k * (0.45 / Math.max(1, perD[d]));
+    });
+
+    const paths = (res.paths || []).map(pp => pp.map(id => G.idx.get(id)).filter(x => x != null));
+    const centre = G.roots.length ? G.roots[0] : 0;
+    this.paths = paths.length ? paths : [[centre]];
+    this.chain = this.paths[0];
+    const N1 = perD[1] || 0, N2 = nodes.length - 1 - N1;
+    this.g = { nodes, edges: G.edges, nb: G.nb, N1, N2 };
+    this.g.keep = skeleton(nodes, G.edges, G.depth, paths);
+
+    const bfs = (src) => { const d = new Array(nodes.length).fill(99); if (src == null) return d; d[src] = 0; const qq = [src]; for (let h = 0; h < qq.length; h++) { const u = qq[h]; for (const v of G.nb[u]) if (d[v] === 99) { d[v] = d[u] + 1; qq.push(v); } } return d; };
+    const last = this.chain[this.chain.length - 1];
+    this.dA = bfs(this.chain[0]);
+    this.dB = bfs(last);
+
+    // Fit the camera to what was laid out. Zoom is relative to the design's
+    // own scale, so this is the factor that makes the result fill the window.
+    const k = fit();
+    const avail2 = Math.min((W / 2 - 110) / far.fx, (H / 2 - 150) / far.fy);
+    const avail3 = (Math.min(W, H) / 2 - 70) / (far.r3 * 0.8);
+    this.fit2 = Math.max(0.2, Math.min(1.8, avail2 / (0.85 * k)));
+    this.fit3 = Math.max(0.2, Math.min(1.8, avail3 / (0.85 * k)));
+
+    this.user = { panX: 0, panY: 0, zoom: 1, tilt: 0 };
+    this.setState({ pathIdx: 0, sel: null, nodeStyle: {} });
+    this.setScreen('graph');
+    this.pullStatus();
+    this.pullHistory();
+  }
+
+  pathTo(t) {
+    const nb = this.g.nb, prev = new Map([[0, -1]]), q = [0];
+    while (q.length) { const u = q.shift(); if (u === t) break; for (const v of nb[u]) if (!prev.has(v)) { prev.set(v, u); q.push(v); } }
+    const p = []; for (let u = t; u !== -1 && u !== undefined; u = prev.get(u)) p.unshift(u);
+    return p;
+  }
+
+  frame(now) {
+    // Follow the window every frame rather than trusting the resize event: it
+    // can arrive at an in-between size and not again, which left the canvas
+    // sized for a window that no longer existed.
+    this.measure();
+    const dt = Math.min(0.05, (now - this.last) / 1000); this.last = now;
+    const c = this.cam, t = this.target || c, k = 1 - Math.pow(0.02, dt), u = this.user;
+    c.cx += (t.cx + u.panX - c.cx) * k; c.cy += (t.cy + u.panY - c.cy) * k; const onResult = this.state.screen === 'graph' || this.state.screen === 'search';
+    const fz = onResult ? (this.fit3 || 1) + ((this.fit2 || 1) - (this.fit3 || 1)) * c.flat : 1;
+    c.zoom += (t.zoom * u.zoom * fz - c.zoom) * k; c.dim += (t.dim - c.dim) * k;
+    { const tf = this.state.view === '2d' ? 1 : 0, step = dt / 1.4; c.flat = c.flat < tf ? Math.min(tf, c.flat + step) : Math.max(tf, c.flat - step); }
+    c.hl += ((this.state.screen === 'graph' ? 1 : 0) - c.hl) * k;
+    c.sf += ((this.state.sel != null && this.state.screen === 'graph' ? 1 : 0) - c.sf) * k;
+    c.mf = (c.mf || 0) + ((this.match && this.state.screen === 'graph' ? 1 : 0) - (c.mf || 0)) * k;
+    c.tilt += (0.38 + u.tilt - c.tilt) * k;
+    if ((this.props.autoRotate ?? true) && this.state.cfg.rotate && !this.state.paused && !this.state.dragging && this.state.sel == null) c.rot += dt * (this.state.screen === 'graph' ? 0.05 : 0.1);
+    this.draw(now);
+  }
+
+  draw(now) {
+    const cv = this.canvasRef.current; if (!cv || !this.g) return;
+    const dpr = window.devicePixelRatio || 1;
+    if (cv.width !== W * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    const c = this.cam, { nodes, edges } = this.g, sel = this.state.sel, cfg = this.state.cfg;
+    const reveal = this.t0 ? (now - this.t0) / 1000 * (this.revealRate || 1) : 99;
+    const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    const camF = ease(Math.min(1, Math.max(0, (c.flat - 0.1) / 0.9)));
+    const cs = Math.cos(c.rot), sn = Math.sin(c.rot), tilt = c.tilt + (Math.PI / 2 - c.tilt) * camF, ct = Math.cos(tilt), st = Math.sin(tilt);
+    this.vm = { cs, sn, ct, st }; this.nowS = now / 1000;
+        const P = this.proj = nodes.map(n => {
+      const m = ease(Math.min(1, Math.max(0, c.flat * 1.5 - n.lvl * 0.22)));
+      const lift = Math.sin(m * Math.PI) * (n.lvl ? -60 * n.lvl : 0);
+      const x = n.p3[0] + (n.p2[0] - n.p3[0]) * m, y = n.p3[1] * (1 - m) + lift, z = n.p3[2] + (n.p2[1] - n.p3[2]) * m;
+      const x1 = x * cs - z * sn, z1 = x * sn + z * cs, Y = y * ct - z1 * st, Z = y * st + z1 * ct, X = x1, p = 900 / (900 + Z);
+      return { x: c.cx + X * p * c.zoom, y: c.cy + Y * p * c.zoom, p, a: (n.lvl === 0 || (n.lvl === 1 ? cfg.l1 : cfg.l2)) ? Math.max(0, Math.min(1, (reveal - n.t) / 0.4)) : 0, da: Math.max(0.3, Math.min(1, 0.45 + (p - 0.75) * 1.8)) };
+    });
+    const focus = new Set(), focusEdges = new Set();
+    let hlPath = this.chain;
+    if (sel != null) { focus.add(sel); this.g.nb[sel].forEach(i => focus.add(i)); hlPath = this.selPath || [sel]; hlPath.forEach(i => focus.add(i)); }
+    const M = this.state.screen === 'graph' ? this.match : null;
+    const fade = (i) => { let f = sel == null || !cfg.focus ? 1 : focus.has(i) ? 1 : 1 - 0.55 * c.sf; if (M && !M.has(i) && i !== sel) f *= 1 - 0.55 * c.mf; return f; };
+    const ST = this.searchT0 ? (now - this.searchT0) / 1000 : null, twoWay = this.state.mode === 'chain';
+    const fa = ST != null ? ST * 1.2 : 0, fb = twoWay && ST != null ? ST * 1.2 : -9;
+    const lit = (i) => ST == null ? null : [Math.max(0, Math.min(1, fa - this.dA[i])), Math.max(0, Math.min(1, fb - this.dB[i]))];
+    ctx.lineCap = 'round';
+    const keepE = cfg.trim && this.g.keep ? this.g.keep : null;
+    for (let ei = 0; ei < edges.length; ei++) {
+      const [a, b] = edges[ei];
+      const A = P[a], B = P[b], al = Math.min(A.a, B.a); if (al <= 0) continue;
+      const own = sel != null && (a === sel || b === sel);
+      if (own && c.sf > 0.01) { focusEdges.add(a === sel ? b : a); continue; }
+      if (ST != null) {
+        const la = lit(a), lb = lit(b), ea = Math.min(la[0], lb[0]), eb = Math.min(la[1], lb[1]);
+        if (ea > 0 || eb > 0) { ctx.strokeStyle = ea >= eb ? FRONT_A : FRONT_B; ctx.globalAlpha = 0.35 * Math.max(ea, eb); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); ctx.globalAlpha = 1; continue; }
+      }
+      if (!cfg.edges) continue;
+      if (keepE && !keepE[ei]) continue;
+      ctx.strokeStyle = `rgba(150,155,175,${0.14 * cfg.edgeAlpha * al * c.dim * (A.da + B.da) / 2 * Math.min(fade(a), fade(b))})`; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+    }
+    if (sel != null) {
+      const S = P[sel];
+      focusEdges.forEach(o => { const O = P[o]; if (O.a <= 0) return; ctx.globalAlpha = c.sf; ctx.strokeStyle = LVL[nodes[o].lvl]; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(S.x, S.y); ctx.lineTo(O.x, O.y); ctx.stroke(); });
+      ctx.globalAlpha = 1;
+    }
+    if (c.hl > 0.01 && hlPath.length > 1 && ST == null) {
+      ctx.save(); ctx.globalAlpha = c.hl * Math.min(...hlPath.map(i => P[i].a)); ctx.lineWidth = 7; ctx.strokeStyle = '#000';
+      ctx.beginPath(); hlPath.forEach((i, j) => j ? ctx.lineTo(P[i].x + 3, P[i].y + 3) : ctx.moveTo(P[i].x + 3, P[i].y + 3)); ctx.stroke();
+      ctx.strokeStyle = '#7b8cff'; ctx.lineWidth = 4; if (cfg.glow) { ctx.shadowColor = '#7b8cff'; ctx.shadowBlur = 16; }
+      ctx.beginPath(); hlPath.forEach((i, j) => j ? ctx.lineTo(P[i].x, P[i].y) : ctx.moveTo(P[i].x, P[i].y)); ctx.stroke(); ctx.restore();
+    }
+    if (ST != null && ST > 1.6) {
+      const cp = Math.min(1, (ST - 1.6) / 0.9), pts = this.chain.map(i => P[i]);
+      const segs = pts.slice(1).map((p, j) => Math.hypot(p.x - pts[j].x, p.y - pts[j].y)), tot = segs.reduce((a, b) => a + b, 0);
+      let left = tot * cp; ctx.save(); ctx.lineCap = 'round';
+      [[7, '#000', 3], [4, '#7b8cff', 0]].forEach(([lw, col, off]) => {
+        let rem = left; ctx.lineWidth = lw; ctx.strokeStyle = col; if (!off && cfg.glow) { ctx.shadowColor = '#7b8cff'; ctx.shadowBlur = 16; }
+        ctx.beginPath(); ctx.moveTo(pts[0].x + off, pts[0].y + off);
+        for (let j = 0; j < segs.length && rem > 0; j++) { const k = Math.min(1, rem / segs[j]); ctx.lineTo(pts[j].x + (pts[j + 1].x - pts[j].x) * k + off, pts[j].y + (pts[j + 1].y - pts[j].y) * k + off); rem -= segs[j]; }
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+    const order = P.map((_, i) => i).sort((i, j) => P[i].p - P[j].p);
+    const onPath = new Set(hlPath);
+    for (const i of order) {
+      const n = nodes[i], q = P[i]; if (q.a <= 0) continue;
+      let base = n.lvl === 0 ? 14 : n.lvl === 1 ? 5.5 : 3.4;
+      if (onPath.has(i) && n.lvl) base += 4 * c.hl;
+      if (i === sel) base += 3;
+      const ease = 1 - Math.pow(1 - q.a, 3), r = base * cfg.size * q.p * c.zoom * ease;
+      if (r < 0.5) continue;
+      let col = this.colOf(i), shp = this.shapeOf(i), am = 1, rr = r;
+      if (ST != null) {
+        const [la, lb] = lit(i), L = Math.max(la, lb);
+        if (L > 0) { col = la >= lb ? FRONT_A : FRONT_B; if (n.lvl === 0 || i === this.chain[2]) col = n.lvl === 0 ? FRONT_A : FRONT_B; rr = r * (1 + 0.3 * L); if (L < 1) { ctx.globalAlpha = (1 - L) * 0.8; ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(q.x, q.y, rr + 14 * L, 0, 7); ctx.stroke(); } }
+        else am = 0.45;
+        if (i === 0 || (twoWay && i === this.chain[2])) { const pu = (ST * 2) % 1; ctx.globalAlpha = 1 - pu; ctx.strokeStyle = i === 0 ? FRONT_A : FRONT_B; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, rr + 6 + pu * 30, 0, 7); ctx.stroke(); rr = Math.max(rr, 12 * q.p); }
+      }
+      ctx.globalAlpha = q.da * (n.lvl === 0 ? 1 : c.dim) * fade(i) * am;
+      if (true) this.ball3d(ctx, q.x, q.y, rr, col, shp, i);
+      else {
+        if (rr > 3.5) { ctx.fillStyle = '#000'; shapePath(ctx, shp, q.x + rr * 0.3 + 1, q.y + rr * 0.3 + 1, rr); ctx.fill(); }
+        ctx.fillStyle = col; shapePath(ctx, shp, q.x, q.y, rr); ctx.fill();
+        if (rr > 3.5) { ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke(); }
+      }
+    }
+    ctx.globalAlpha = 1;
+    if (c.hl > 0.01 && cfg.labels) {
+      const labels = sel != null ? [...new Set([...hlPath, sel])] : hlPath;
+      ctx.font = "700 12px 'JetBrains Mono', monospace";
+      labels.forEach(i => {
+        const q = P[i], label = nodes[i].name, w = ctx.measureText(label).width, isSel = i === sel;
+        ctx.globalAlpha = c.hl * q.a; if (q.a <= 0) return;
+        if (isSel) { ctx.strokeStyle = '#ecebe4'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, 15 * q.p, 0, 7); ctx.stroke(); }
+        const bx = q.x + 16, by = q.y - 12;
+        ctx.fillStyle = '#000'; ctx.fillRect(bx + 3, by + 3, w + 14, 24);
+        ctx.fillStyle = isSel ? '#ecebe4' : '#111317'; ctx.fillRect(bx, by, w + 14, 24);
+        ctx.strokeStyle = isSel ? '#000' : '#363b45'; ctx.lineWidth = 1.5; ctx.strokeRect(bx, by, w + 14, 24);
+        ctx.fillStyle = isSel ? '#0a0b0d' : '#ecebe4'; ctx.fillText(label, bx + 7, by + 16);
+      });
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  colOf(i) { const ns = this.state.nodeStyle[i]; return (ns && ns.color) || this.state.lvlStyle[this.g.nodes[i].lvl].color; }
+  shapeOf(i) { const ns = this.state.nodeStyle[i]; return (ns && ns.shape) || this.state.lvlStyle[this.g.nodes[i].lvl].shape; }
+  mesh3d(ctx, x, y, r, col, shp, i) {
+    const m = MESH[shp], { cs, sn, ct, st } = this.vm, rgb = RGB(col);
+    const a = i * 1.37 + (this.state.cfg.rotate && !this.state.paused ? this.nowS * 0.5 : 0), ca = Math.cos(a), sa = Math.sin(a);
+    const V = m.v.map(([px, py, pz]) => {
+      const lx = px * ca - pz * sa, lz = px * sa + pz * ca;
+      const x1 = lx * cs - lz * sn, z1 = lx * sn + lz * cs, y1 = py * ct - z1 * st, z2 = py * st + z1 * ct;
+      return [x1, y1, z2];
+    });
+    const outline = r > 4;
+    for (const f of m.f) {
+      const p0 = V[f[0]], p1 = V[f[1]], p2 = V[f[2]];
+      const u = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]], w = [p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]];
+      let n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]];
+      const nl = Math.hypot(...n) || 1; n = n.map(v => v / nl);
+      const cx = f.reduce((s2, k) => s2 + V[k][0], 0) / f.length, cy = f.reduce((s2, k) => s2 + V[k][1], 0) / f.length, cz = f.reduce((s2, k) => s2 + V[k][2], 0) / f.length;
+      if (n[0] * cx + n[1] * cy + n[2] * cz < 0) n = n.map(v => -v);
+      if (n[2] >= 0) continue;
+      const d = Math.max(0, n[0] * LIGHT[0] + n[1] * LIGHT[1] + n[2] * LIGHT[2]), b = 0.22 + 0.78 * d, hi = Math.max(0, d - 0.82) * 2.4;
+      ctx.fillStyle = 'rgb(' + rgb.map(v => Math.round(Math.min(255, v * b + (255 - v) * hi))).join(',') + ')';
+      ctx.beginPath(); f.forEach((k, j) => ctx[j ? 'lineTo' : 'moveTo'](x + V[k][0] * r, y + V[k][1] * r)); ctx.closePath(); ctx.fill();
+      if (outline) { ctx.strokeStyle = 'rgba(0,0,0,.75)'; ctx.lineWidth = 1; ctx.lineJoin = 'round'; ctx.stroke(); }
+    }
+  }
+  ball3d(ctx, x, y, r, col, shp, i) {
+    if (shp && shp !== 'circle' && MESH[shp]) {
+      if (r > 2.5) { const a0 = ctx.globalAlpha; ctx.globalAlpha = a0 * 0.45; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(x + r * 0.35, y + r * 1.25, r * 0.95, r * 0.3, 0, 0, 7); ctx.fill(); ctx.globalAlpha = a0; }
+      return this.mesh3d(ctx, x, y, r, col, shp, i || 0);
+    }
+    const sh = shades(col);
+    if (r > 2.5) { const a0 = ctx.globalAlpha; ctx.globalAlpha = a0 * 0.45; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(x + r * 0.35, y + r * 1.05, r * 0.95, r * 0.32, 0, 0, 7); ctx.fill(); ctx.globalAlpha = a0; }
+    const g = ctx.createRadialGradient(x - r * 0.38, y - r * 0.42, r * 0.04, x - r * 0.1, y - r * 0.1, r * 1.15);
+    g.addColorStop(0, sh[0]); g.addColorStop(0.22, sh[1]); g.addColorStop(0.55, sh[2]); g.addColorStop(0.88, sh[3]); g.addColorStop(1, sh[4]);
+    ctx.fillStyle = g; shapePath(ctx, shp, x, y, r); ctx.fill();
+    if (r > 4) {
+      const rim = ctx.createRadialGradient(x + r * 0.3, y + r * 0.45, r * 0.55, x, y, r);
+      rim.addColorStop(0, 'rgba(255,255,255,0)'); rim.addColorStop(1, 'rgba(255,255,255,.14)');
+      ctx.fillStyle = rim; shapePath(ctx, shp, x, y, r); ctx.fill();
+      if (shp && shp !== 'circle') { ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 1; shapePath(ctx, shp, x, y, r); ctx.stroke(); }
+      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(x - r * 0.38, y - r * 0.45, r * 0.2, r * 0.13, -0.6, 0, 7); ctx.fill();
+    }
+  }
+
+  local(e) { const r = e.currentTarget.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
+  onDown = (e) => {
+    if (this.state.screen === 'splash') return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    this.drag = { x: e.clientX, y: e.clientY, moved: 0 };
+    this.setState({ dragging: true });
+  };
+  onMove = (e) => {
+    const d = this.drag; if (!d) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y; d.x = e.clientX; d.y = e.clientY; d.moved += Math.abs(dx) + Math.abs(dy);
+    if (this.state.view === '3d' && !e.shiftKey) {
+      this.cam.rot += dx * 0.006;
+      this.user.tilt = Math.max(-1.1, Math.min(1.1, this.user.tilt + dy * 0.005));
+      this.cam.tilt = 0.38 + this.user.tilt;
+    } else { this.user.panX += dx; this.user.panY += dy; this.cam.cx += dx; this.cam.cy += dy; }
+  };
+  onUp = (e) => {
+    const d = this.drag; this.drag = null; this.setState({ dragging: false });
+    if (!d || d.moved > 5 || this.state.screen !== 'graph' || !this.proj) return;
+    const [mx, my] = this.local(e);
+    let best = -1, bd = 16 * 16;
+    this.proj.forEach((q, i) => { const dd = (q.x - mx) ** 2 + (q.y - my) ** 2; if (dd < bd) { bd = dd; best = i; } });
+    this.select(best >= 0 ? best : null);
+  };
+  onWheel = (e) => { if (this.state.screen === 'splash') return; this.user.zoom = Math.max(0.4, Math.min(3, this.user.zoom * Math.exp(-e.deltaY * 0.0012))); };
+  select(i) { this.selPath = i == null ? null : this.pathTo(i); this.setState({ sel: i }); }
+
+  seg(on) { return { bg: on ? '#e6e6df' : 'transparent', color: on ? '#0a0b0d' : '#9a9ca6' }; }
+
+  tg(key, label, sub) { const on = this.state.cfg[key]; return { label, sub, track: on ? '#7b8cff' : '#262a31', knobX: on ? '22px' : '2px', toggle: () => this.setCfg({ [key]: !on }) }; }
+  sl(key, label, min, max, step, fmt) { const v = this.state.cfg[key]; return { label, min, max, step, value: v, display: fmt(v), onChange: e => this.setCfg({ [key]: +e.target.value }) }; }
+  search(s) {
+    const g = this.g; if (!g) return { list: [], facets: [] };
+    const key = s.sortBy, q = s.q.trim().toLowerCase(), F = s.filters;
+    const pass = (i, skip) => { const n = g.nodes[i]; if (q && !n.name.toLowerCase().includes(q)) return false; for (const k in F) { if (k !== skip && F[k].length && !F[k].includes(n[k])) return false; } return true; };
+    const all = g.nodes.map((n, i) => i);
+    const cnt = {}; all.filter(i => pass(i, key)).forEach(i => { const v = g.nodes[i][key]; cnt[v] = (cnt[v] || 0) + 1; });
+    (F[key] || []).forEach(v => { if (!(v in cnt)) cnt[v] = 0; });
+    const facets = Object.entries(cnt).sort((a, b) => key === 'age' ? a[0].localeCompare(b[0]) : b[1] - a[1]).slice(0, 8);
+    const list = all.filter(i => pass(i)).sort((a, b) => { const A = g.nodes[a], B = g.nodes[b]; return key === 'age' ? A.ageN - B.ageN : String(A[key]).localeCompare(String(B[key])) || A.name.localeCompare(B.name); });
+    const active = q || Object.values(F).some(v => v.length);
+    this.match = active ? new Set(list) : null;
+    return { list, facets, active };
+  }
+  setCfg(p) { this.setState(s => ({ cfg: { ...s.cfg, ...p } })); }
+
+  renderVals() {
+    const s = this.state, g = this.g, mode = MODES.find(m => m.id === s.mode);
+    const st = this.state.status || { token_ok: false, cache_profiles: 0, cache_friends: 0 };
+    const fmt = (n) => String(n ?? 0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    const boot = ['подключение к VK API', 'проверка токена', 'загрузка кэша · 18 660 профилей', 'запуск движка графа', 'готово'];
+    const src = [['f1', 'Друзья'], ['f2', 'Друзья друзей'], ['city', 'Город'], ['school', 'Школа и вуз'], ['groups', 'Сообщества']];
+    const sel = g && s.sel != null ? g.nodes[s.sel] : null;
+    const lvlName = ['центр', 'уровень 1', 'уровень 2'];
+    const pick = (i) => () => this.select(i);
+    const extraActive = !!mode.extra;
+    const main = MODES.filter(m => !m.extra);
+    const path = sel ? (this.selPath || [s.sel]) : [];
+    const hopWord = (n) => n === 1 ? '1 рукопожатие' : n < 5 ? n + ' рукопожатия' : n + ' рукопожатий';
+    return {
+      canvasRef: this.canvasRef, onDown: this.onDown, onMove: this.onMove, onUp: this.onUp, onWheel: this.onWheel,
+      cursor: s.dragging ? 'grabbing' : s.screen === 'splash' ? 'default' : 'grab',
+      isSplash: s.screen === 'splash' || s.screen === null, isHome: s.screen === 'home', isGraph: s.screen === 'graph',
+      bootPct: Math.round(s.boot / 5 * 100) + '%', bootLine: boot[Math.max(0, s.boot - 1)],
+      tokenDot: st.token_ok ? '#4fd18b' : '#ff6b6b',
+      tokenDraft: s.tokenDraft || '',
+      onTokenDraft: e => this.setState({ tokenDraft: e.target.value }),
+      tokenPlaceholder: st.token_ok ? (st.token_hint || 'токен сохранён') + ' · вставь новый' : 'вставь токен или всю ссылку',
+      tokenNote: st.token_ok ? 'токен сохранён' + (st.me && st.me.name ? ' · ' + st.me.name : '') : 'токена нет: получи его по ссылке ниже',
+      saveToken: () => this.saveToken(),
+      getToken: () => this.getToken(),
+      cacheProfiles: 'профили · ' + fmt(st.cache_profiles),
+      cacheFriends: 'друзья · ' + fmt(st.cache_friends),
+      clearLabel: s.confirmClear ? 'Нажми ещё раз — удалить всё' : 'Очистить кэш · ' + ((st.cache_bytes || 0) / 1048576).toFixed(1) + ' МБ',
+      clearCache: () => this.clearCache(),
+      pathsN: s.pathsN,
+      pathsDec: () => this.setState({ pathsN: Math.max(1, (s.pathsN || 1) - 1) }),
+      pathsInc: () => this.setState({ pathsN: Math.min(8, (s.pathsN || 1) + 1) }),
+      hasErr: !!s.err, errText: s.err || '', dismissErr: () => this.setState({ err: null }),
+      tokenText: st.token_ok
+        ? ('токен ok · ' + fmt(st.cache_profiles) + ' в кэше')
+        : 'токена нет · только кэш',
+      goHome: () => this.setScreen('home'),
+      // Read from the window itself: it can leave full screen by other means
+      // than this button, and a flag would then say the wrong thing.
+      fullLabel: (window.innerWidth >= screen.width - 1 && window.innerHeight >= screen.height - 1) ? '⤡ ОКНО' : '⤢ ВО ВЕСЬ ЭКРАН',
+      toggleFull: () => this.toggleFull(),
+      hint: s.view === '3d' ? 'тяни — вращать · shift+тяни — двигать · колесо — масштаб' : 'тяни — двигать · колесо — масштаб',
+      mainModes: [...main.map((m, i) => ({ label: m.label, sep: '2px solid #262a31', ...this.seg(m.id === s.mode), pick: () => this.setState({ mode: m.id, more: false }) })),
+        { label: extraActive ? mode.label : 'Ещё ▾', sep: 'none', ...this.seg(extraActive), pick: () => this.setState({ more: !s.more }) }],
+      moreOpen: s.more,
+      extraModes: MODES.filter(m => m.extra).map(m => ({ label: m.label, short: m.short, pick: () => this.setState({ mode: m.id, more: false }) })),
+      mode,
+      isChain: s.mode === 'chain', isRelatives: s.mode === 'relatives', isExplore: s.mode === 'explore', isIntersect: s.mode === 'intersect', isClusters: s.mode === 'clusters',
+      from: s.from, to: s.to, onFrom: e => this.setState({ from: e.target.value }), onTo: e => this.setState({ to: e.target.value }), swap: () => this.setState({ from: s.to, to: s.from }),
+      relUser: s.relUser, onRelUser: e => this.setState({ relUser: e.target.value }),
+      sources: src.map(([k, l]) => { const on = s.src[k]; return { label: l, bg: on ? '#e6e6df' : 'transparent', color: on ? '#0a0b0d' : '#9a9ca6', border: on ? '#e6e6df' : '#262a31', toggle: () => this.setState({ src: { ...s.src, [k]: !on } }) }; }),
+      center: s.center, onCenter: e => this.setState({ center: e.target.value }),
+      viewSeg: [['3d', '3D'], ['2d', '2D']].map(([v, l]) => ({ label: l, ...this.seg(s.view === v), pick: () => this.setState({ view: v }) })),
+      people: s.people.map((id, i) => ({ id, remove: () => this.setState({ people: s.people.filter((_, j) => j !== i) }) })),
+      addPerson: () => s.people.length < 5 && this.setState({ people: [...s.people, 'id' + (100000 + s.people.length * 7331)] }),
+      run: () => this.launch(),
+      modeIndex: String(MODES.indexOf(mode) + 1).padStart(2, '0') + ' / ' + String(MODES.length).padStart(2, '0'),
+      showStatus: s.screen && s.screen !== 'splash',
+      statusCells: [
+        { k: 'API', v: '5.131', dot: st.token_ok ? '#4fd18b' : '#ff6b6b' },
+        { k: 'RATE', v: '3 req/s', dot: '#4fd18b' },
+        { k: 'КЭШ', v: fmt(st.cache_profiles), dot: '#7b8cff' },
+        { k: 'УЗЛОВ', v: g ? String(g.nodes.length) : '—', dot: '#f2c14e' },
+        { k: 'СВЯЗЕЙ', v: g ? String(g.edges.length) : '—', dot: '#363b45' },
+        { k: 'ВИД', v: s.view.toUpperCase(), dot: '#363b45' },
+        { k: 'ГЛУБИНА', v: String(s.cfg.depth), dot: '#363b45' },
+      ],
+      isSearching: s.screen === 'search',
+      ...(() => {
+        const t = s.searchP || 0, two = s.mode === 'chain';
+        // With a back end these come from its own events; the timeline below
+        // is only what the file falls back to when opened on its own.
+        const live = !!this.api(), f = this.fronts || { A: 0, B: 0, checked: { A: 0, B: 0 } };
+        const met = live ? this.metVia != null : (two ? t >= 0.85 : t >= 1.7);
+        const done = live ? false : t >= 2.5;
+        const lv = (x) => live ? x : Math.min(two ? 1 : 2, Math.floor(x * 1.2));
+        const checked = live ? (f.checked.A + f.checked.B) * 0 + (this.checkedTotal || 0)
+                             : Math.round(Math.min(1, t / 2.4) ** 1.6 * 18660);
+        return {
+          searchTitle: two ? 'ИЩЕМ ЦЕПОЧКУ' : 'СТРОИМ', searchTwo: two,
+          searchFrom: two ? s.from : s.center, searchTo: s.to,
+          searchChecked: checked.toLocaleString('ru-RU'),
+          searchFronts: two
+            ? 'фронт A · ур. ' + lv(live ? f.A : t) + '   фронт B · ур. ' + lv(live ? f.B : t)
+            : 'уровень ' + lv(live ? f.A : t),
+          searchStatus: done ? (two ? 'цепочка найдена' : 'готово')
+            : met ? (two ? 'фронты встретились' : 'собираем связи') : 'обход друзей…',
+          searchStatusColor: done ? '#4fd18b' : met ? '#ff7ac6' : '#9a9ca6',
+          // A real search has no known length, so the bar paces itself by
+          // how deep the fronts have gone rather than pretending to a total.
+          searchPct: (live ? Math.min(92, 12 + (f.A + f.B) * 18) : Math.round(Math.min(1, t / 2.6) * 100)) + '%',
+          cancelSearch: () => this.setScreen('home'),
+        };
+      })(),
+      recent: [
+        { text: 'durov → id742860134', open: () => this.setScreen('graph') },
+        { text: 'Дуровы', open: () => this.setState({ mode: 'relatives' }) },
+        { text: 'граф id3291847', open: () => this.setScreen('graph') },
+      ],
+      legend: g ? [{ count: '1', color: s.lvlStyle[0].color }, { count: String(g.N1), color: s.lvlStyle[1].color }, { count: String(g.N2), color: s.lvlStyle[2].color }] : [],
+      ...(() => {
+        if (!g) return {};
+        const swatches = (cur, set) => PALETTE.map(c => ({ c, border: c === cur ? '#ecebe4' : '#000', shadow: c === cur ? '2px 2px 0 #000' : 'none', pick: () => set(c) }));
+        const shapes = (cur, set, col) => SHAPES.map(([k, clip]) => ({ clip, fill: k === cur ? '#0a0b0d' : col, bg: k === cur ? '#e6e6df' : 'transparent', border: k === cur ? '#e6e6df' : '#262a31', pick: () => set(k) }));
+        const setLvl = (l, p) => this.setState(st => ({ lvlStyle: st.lvlStyle.map((x, j) => j === l ? { ...x, ...p } : x) }));
+        const setNode = (p) => this.setState(st => ({ nodeStyle: { ...st.nodeStyle, [st.sel]: { ...(st.nodeStyle[st.sel] || {}), ...p } } }));
+        const out = {
+          lvlStyles: ['Центр', 'Уровень 1', 'Уровень 2'].map((label, l) => { const st = s.lvlStyle[l]; return { label, color: st.color, clip: CLIP[st.shape], colors: swatches(st.color, c => setLvl(l, { color: c })), shapes: shapes(st.shape, k => setLvl(l, { shape: k }), st.color) }; }),
+          paths: this.paths.map((p, k) => ({ num: String(k + 1).padStart(2, '0'), numColor: k === s.pathIdx ? '#7b8cff' : '#767a85', text: p.map(i => g.nodes[i].name).join(' → '), meta: (p.length - 1) + ' рук.', bg: k === s.pathIdx ? '#191c21' : 'transparent', pick: () => { this.chain = p; this.setState({ pathIdx: k, pathsOpen: false }); } })),
+          pathCount: this.paths.length, pathsOpen: s.pathsOpen, togglePaths: () => this.setState({ pathsOpen: !s.pathsOpen }),
+          pathsBtn: { label: (s.pathIdx + 1) + ' / ' + this.paths.length + (s.pathsOpen ? ' ▴' : ' ▾'), bg: s.pathsOpen ? '#e6e6df' : '#191c21', color: s.pathsOpen ? '#0a0b0d' : '#e6e6df', border: s.pathsOpen ? '#e6e6df' : '#363b45' },
+        };
+        if (s.sel != null) {
+          const cc = this.colOf(s.sel), cs = this.shapeOf(s.sel);
+          out.selColors = swatches(cc, c => setNode({ color: c }));
+          out.selShapes = shapes(cs, k => setNode({ shape: k }), cc);
+          out.selCustom = !!s.nodeStyle[s.sel];
+          out.resetNodeStyle = () => this.setState(st => { const ns = { ...st.nodeStyle }; delete ns[st.sel]; return { nodeStyle: ns }; });
+        }
+        return out;
+      })(),
+      chainItems: g && this.chain ? this.chain.map((i, j) => ({ name: g.nodes[i].name, arrow: j > 0, pick: pick(i) })) : [],
+      hasSel: !!sel,
+      sel: sel ? {
+        idx: String(s.sel).padStart(4, '0'),
+        fields: [['город', sel.city], ['вуз', sel.uni], ['школа', sel.school], ['работа', sel.work], ['возраст', sel.ageN]].map(([k, v]) => ({ k, v: String(v) })),
+        name: sel.name, lvl: lvlName[sel.lvl], color: this.colOf(s.sel), linkCount: g.nb[s.sel].length,
+        hops: path.length > 1 ? hopWord(path.length - 1) : 'это центр',
+        path: path.map((i, j) => ({ name: g.nodes[i].name, color: LVL[g.nodes[i].lvl], lineTop: j ? '#7b8cff' : 'transparent', lineBottom: j < path.length - 1 ? '#7b8cff' : 'transparent', pick: pick(i) })),
+        links: g.nb[s.sel].map(i => ({ name: g.nodes[i].name, color: LVL[g.nodes[i].lvl], dir: g.nodes[i].lvl < sel.lvl ? '↑ ближе' : g.nodes[i].lvl > sel.lvl ? '↓ дальше' : '↔ рядом', pick: pick(i) })),
+      } : {},
+      closeSel: () => this.select(null),
+      makeCenter: () => { this.user.panX = 0; this.user.panY = 0; },
+      resetView: () => { this.user = { panX: 0, panY: 0, zoom: 1, tilt: 0 }; },
+      settingsOpen: !!s.settings, tabMain: s.settings === 'main', tabGraph: s.settings === 'graph',
+      openMain: () => this.setState({ settings: 'main' }), openGraph: () => this.setState({ settings: 'graph' }), closeSettings: () => this.setState({ settings: null }),
+      resetCfg: () => this.setState({ cfg: { ...CFG0 } }),
+      tabs: [['main', 'Основные'], ['graph', 'Граф']].map(([v, l]) => ({ label: l, ...this.seg(s.settings === v), pick: () => this.setState({ settings: v }) })),
+      depthSeg: [3, 4, 5, 6].map(v => ({ label: String(v), ...this.seg(s.cfg.depth === v), pick: () => this.setCfg({ depth: v }) })),
+      mainSliders: [this.sl('apiDelay', 'ЗАДЕРЖКА ЗАПРОСОВ', 0.1, 2, 0.05, v => v.toFixed(2) + 'с')],
+      mainToggles: [this.tg('cache', 'Использовать кэш', 'friends_cache.json'), this.tg('html', 'HTML-отчёт', 'открывать после поиска'), this.tg('translit', 'Транслит фамилий', 'Ivanov = Иванов'), this.tg('notify', 'Уведомление', 'когда долгий поиск завершён')],
+      levelChips: [['l0', 'Центр', 0], ['l1', 'Ур. 1', 1], ['l2', 'Ур. 2', 2]].map(([k, l, i]) => { const on = i === 0 || s.cfg[k]; return { label: l, dot: LVL[i], bg: on ? '#191c21' : 'transparent', border: on ? '#e6e6df' : '#262a31', color: on ? '#ecebe4' : '#555964', toggle: () => i && this.setCfg({ [k]: !s.cfg[k] }) }; }),
+      graphToggles: [this.tg('edges', 'Связи', 'линии между узлами'), this.tg('labels', 'Подписи', 'имена на цепочке'), this.tg('rotate', 'Автовращение', 'в режиме 3D'), this.tg('focus', 'Фокус на выбранном', 'гасить остальные узлы'), this.tg('glow', 'Свечение цепочки', 'подсветка найденного пути'), this.tg('trim', 'Обрезать лишние связи', 'оставить связи внутри кругов')],
+      graphSliders: [this.sl('size', 'РАЗМЕР УЗЛОВ', 0.5, 2, 0.1, v => '×' + v.toFixed(1)), this.sl('edgeAlpha', 'ЯРКОСТЬ СВЯЗЕЙ', 0.2, 3, 0.1, v => Math.round(v * 100) + '%'), this.sl('nodeDelay', 'ЗАДЕРЖКА МЕЖДУ УЗЛАМИ', 0.3, 4, 0.1, v => v.toFixed(1) + 'с'), this.sl('levelPause', 'ПАУЗА МЕЖДУ УРОВНЯМИ', 2, 20, 1, v => v + 'с'), this.sl('maxNodes', 'МАКС. УЗЛОВ В ГРАФЕ', 100, 1000, 50, v => String(v))],
+      ...(() => {
+        // Real history, written by the back end after every search. The
+        // kinds it stores are mapped onto the three the tabs filter by.
+        const kindOf = { chain: 'chain', explore: 'graph', relatives: 'rel',
+                         intersect: 'graph', clusters: 'graph' };
+        const titleOf = { chain: 'ЦЕПОЧКА', graph: 'ГРАФ', rel: 'РОДНЯ' };
+        const when = (ts) => {
+          if (!ts) return '';
+          const d = new Date(ts * 1000), now = new Date();
+          const hhmm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+          const sameDay = d.toDateString() === now.toDateString();
+          if (sameDay) return 'сегодня ' + hhmm;
+          const y = new Date(now); y.setDate(now.getDate() - 1);
+          if (d.toDateString() === y.toDateString()) return 'вчера ' + hhmm;
+          return d.getDate() + ' ' + ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()];
+        };
+        const H = (this.state.hist || []).map(h => {
+          const k = kindOf[h.type] || 'graph';
+          return [k, titleOf[k], h.query || '', h.meta || '', when(h.ts)];
+        });
+        const col = { chain: '#7b8cff', graph: '#4fd18b', rel: '#f2c14e' };
+        const list = H.filter(h => s.histTab === 'all' || h[0] === s.histTab);
+        return {
+          histOpen: s.histOpen, histClosed: !s.histOpen, histCount: H.length,
+          histToggleLabel: s.histOpen ? 'СВЕРНУТЬ ▴' : 'РАСКРЫТЬ ▾', toggleHist: () => this.setState({ histOpen: !s.histOpen }),
+          histTabs: [['all', 'Все'], ['chain', 'Цепочки'], ['graph', 'Графы'], ['rel', 'Родня']].map(([v, l]) => ({ label: l, ...this.seg(s.histTab === v), pick: () => this.setState({ histTab: v }) })),
+          history: list.map(h => ({ type: h[1], q: h[2], meta: h[3], date: h[4], color: col[h[0]], open: () => h[0] === 'rel' ? this.setState({ mode: 'relatives' }) : this.setScreen('graph') })),
+          recent: H.slice(0, 3).map(h => ({ q: h[2], open: () => h[0] === 'rel' ? this.setState({ mode: 'relatives' }) : this.setScreen('graph') })),
+        };
+      })(),
+      ...(() => {
+        const r = this.search(s), key = s.sortBy, F = s.filters;
+        const setF = (k, arr) => { const nf = { ...F, [k]: arr }; if (!arr.length) delete nf[k]; this.setState({ filters: nf }); };
+        const nActive = Object.values(F).reduce((a, v) => a + v.length, 0);
+        const fname = Object.fromEntries(FIELDS);
+        return {
+          q: s.q, onQ: e => this.setState({ q: e.target.value }),
+          filtersOpen: s.filtersOpen, toggleFilters: () => this.setState({ filtersOpen: !s.filtersOpen }),
+          filterBtn: { label: (s.filtersOpen ? 'Фильтры ▴' : 'Фильтры ▾') + (nActive ? ' ' + nActive : ''), bg: s.filtersOpen ? '#e6e6df' : '#191c21', color: s.filtersOpen ? '#0a0b0d' : '#e6e6df', border: s.filtersOpen ? '#e6e6df' : '#363b45' },
+          sortSeg: FIELDS.map(([k, l]) => { const on = key === k, n = (F[k] || []).length; return { label: l, hasN: n > 0, n, bg: on ? '#e6e6df' : 'transparent', color: on ? '#0a0b0d' : '#9a9ca6', border: on ? '#e6e6df' : '#262a31', pick: () => this.setState({ sortBy: k }) }; }),
+          facets: r.facets.map(([v, n]) => { const cur = F[key] || [], on = cur.includes(v); return { v, n, bg: on ? '#191c21' : 'transparent', box: on ? '#7b8cff' : '#363b45', fill: on ? '#7b8cff' : 'transparent', pick: () => setF(key, on ? cur.filter(x => x !== v) : [...cur, v]) }; }),
+          hasActive: nActive > 0,
+          activeChips: Object.entries(F).flatMap(([k, vs]) => vs.map(v => ({ k: fname[k].toLowerCase(), v, remove: () => setF(k, vs.filter(x => x !== v)) }))),
+          showResults: !!r.active, resultCount: r.list.length, clearFilter: () => this.setState({ q: '', filters: {} }),
+          results: r.list.slice(0, 80).map(i => ({ name: g.nodes[i].name, val: g.nodes[i][key], color: LVL[g.nodes[i].lvl], bg: i === s.sel ? '#191c21' : 'transparent', pick: pick(i) })),
+        };
+      })(),
+      pauseBtn: s.paused ? 'ПРОДОЛЖИТЬ' : 'ПАУЗА', togglePause: () => this.setState({ paused: !s.paused }),
+    };
+  }
+}
+</script>
+</body>
+</html>
