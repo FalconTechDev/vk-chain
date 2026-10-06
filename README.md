@@ -75,6 +75,14 @@ graph TD
 <!-- Логотип, вернуть, когда картинки из репозитория снова будут отдаваться:
 <p align="center"><img src="assets/logo.png" width="96" alt="vk-chain"></p> -->
 
+<p align="center">
+  <img src="docs/screenshot_home.png" alt="Главный экран vk-chain: форма поиска слева, граф справа" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/screenshot_splash.png" alt="Заставка vk-chain" width="100%">
+</p>
+
 **Установка:** скачай `vk-chain-setup-*.exe` со страницы [Releases](https://github.com/FalconTechDev/vk-chain/releases) и запусти. Ставится для текущего пользователя, права администратора не нужны.
 
 При первом запуске открой **⚙ Настройки → Токен VK**, нажми «Получить токен в браузере», войди во ВКонтакте — адрес, на котором ты окажешься, целиком вставь в поле и нажми «Сохранить». Токен проверяется, и только потом сохраняется.
