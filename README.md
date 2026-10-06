@@ -75,6 +75,7 @@ graph TD
 <!-- Логотип, вернуть, когда картинки из репозитория снова будут отдаваться:
 <p align="center"><img src="assets/logo.png" width="96" alt="vk-chain"></p> -->
 
+<!-- Скриншоты приложения, вернуть, когда картинки из репозитория снова будут отдаваться:
 <p align="center">
   <img src="docs/screenshot_home.webp" alt="Главный экран vk-chain: форма поиска слева, граф справа" width="100%">
 </p>
@@ -82,6 +83,7 @@ graph TD
 <p align="center">
   <img src="docs/screenshot_splash.webp" alt="Заставка vk-chain" width="100%">
 </p>
+-->
 
 **Установка:** скачай `vk-chain-setup-*.exe` со страницы [Releases](https://github.com/FalconTechDev/vk-chain/releases) и запусти. Ставится для текущего пользователя, права администратора не нужны.
 
