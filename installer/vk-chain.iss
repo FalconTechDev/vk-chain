@@ -51,6 +51,12 @@ Source: "..\dist\vk-chain\*"; DestDir: "{app}"; Flags: ignoreversion recursesubd
 Name: "{autoprograms}\vk-chain"; Filename: "{app}\vk-chain.exe"
 Name: "{autodesktop}\vk-chain"; Filename: "{app}\vk-chain.exe"; Tasks: desktopicon
 
+[Registry]
+; Gives notifications a name and an icon. Without an identity of its own an
+; unpackaged program's toasts are shown under whatever sent them.
+Root: HKCU; Subkey: "Software\Classes\AppUserModelId\vk-chain"; ValueType: string; ValueName: "DisplayName"; ValueData: "vk-chain"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\AppUserModelId\vk-chain"; ValueType: string; ValueName: "IconUri"; ValueData: "{app}\_internal\assets\logo.png"
+
 [Run]
 Filename: "{app}\vk-chain.exe"; Description: "{cm:LaunchProgram,vk-chain}"; Flags: nowait postinstall skipifsilent
 
