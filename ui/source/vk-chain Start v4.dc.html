@@ -27,7 +27,7 @@ input::placeholder{color:#555964}
 </helmet>
 <div style="width:100vw;height:100vh;background:#0b0c0e;color:#e6e6df;font-family:'JetBrains Mono',monospace;position:relative;overflow:hidden">
   <div style="position:absolute;inset:0;background-image:linear-gradient(#15171b 1px,transparent 1px),linear-gradient(90deg,#15171b 1px,transparent 1px),linear-gradient(#0f1114 1px,transparent 1px),linear-gradient(90deg,#0f1114 1px,transparent 1px);background-size:96px 96px,96px 96px,24px 24px,24px 24px;pointer-events:none"></div>
-  <canvas ref="{{ canvasRef }}" onPointerDown="{{ onDown }}" onPointerMove="{{ onMove }}" onPointerUp="{{ onUp }}" onWheel="{{ onWheel }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;cursor:{{ cursor }};touch-action:none"></canvas>
+  <canvas ref="{{ canvasRef }}" onPointerDown="{{ onDown }}" onPointerMove="{{ onMove }}" onPointerUp="{{ onUp }}" onPointerLeave="{{ onLeave }}" onWheel="{{ onWheel }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;cursor:{{ cursor }};touch-action:none"></canvas>
 
   <sc-if value="{{ isSplash }}" hint-placeholder-val="{{ true }}">
     <div style="position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:100px;gap:16px">
@@ -50,7 +50,6 @@ input::placeholder{color:#555964}
           <div onClick="{{ o.pick }}" style="height:36px;padding:0 14px;display:flex;align-items:center;cursor:pointer;font-size:13px;font-weight:700;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</div>
         </sc-for>
       </div>
-      <div onClick="{{ toggleFull }}" style="pointer-events:auto;height:40px;padding:0 14px;border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:4px 4px 0 #000;display:flex;align-items:center;font-size:13px;font-weight:700;color:#e6e6df;cursor:pointer;white-space:nowrap" style-hover="border-color:#e6e6df">{{ fullLabel }}</div>
       <div onClick="{{ openMain }}" style="pointer-events:auto;height:40px;padding:0 14px;border:2px solid #262a31;border-radius:2px;background:#111317;box-shadow:4px 4px 0 #000;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#e6e6df;cursor:pointer;white-space:nowrap" style-hover="border-color:#e6e6df">⚙ НАСТРОЙКИ</div>
     </div>
 
@@ -112,7 +111,8 @@ input::placeholder{color:#555964}
             <sc-for list="{{ people }}" as="p" hint-placeholder-count="3">
               <div style="height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;border:2px solid #363b45;border-radius:2px;background:#111317;font-size:13px;color:#ecebe4">{{ p.id }}<span onClick="{{ p.remove }}" style="color:#9a9ca6;cursor:pointer">×</span></div>
             </sc-for>
-            <div onClick="{{ addPerson }}" style="height:30px;display:flex;align-items:center;padding:0 8px;font-size:13px;font-weight:700;color:#9aa6ff;cursor:pointer">+ человек</div>
+            <input value="{{ personDraft }}" onChange="{{ onPersonDraft }}" onKeyDown="{{ onPersonKey }}" placeholder="id или vk.com/…" style="flex:1;min-width:150px;height:30px;border:none;background:transparent;color:#ecebe4;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;padding:0 4px">
+            <div onClick="{{ addPerson }}" style="height:30px;display:flex;align-items:center;padding:0 10px;border:2px solid #363b45;border-radius:2px;background:#111317;font-size:12px;font-weight:700;color:#9aa6ff;cursor:pointer" style-hover="border-color:#e6e6df">+ добавить</div>
           </div>
         </sc-if>
         <sc-if value="{{ isClusters }}" hint-placeholder-val="{{ false }}">
@@ -255,7 +255,7 @@ input::placeholder{color:#555964}
       <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
         <div style="position:absolute;top:96px;right:28px;bottom:120px;width:320px;pointer-events:auto;border:2px solid #262a31;border-radius:3px;background:#111317;box-shadow:8px 8px 0 #000;display:flex;flex-direction:column;overflow:hidden">
           <div style="padding:16px 18px 14px;display:flex;gap:14px;align-items:flex-start;border-bottom:2px solid #262a31">
-            <div style="width:48px;height:48px;border-radius:2px;border:2px solid #000;flex:none;background:{{ sel.color }};box-shadow:3px 3px 0 #000"></div>
+            <div style="width:48px;height:48px;border-radius:2px;border:2px solid #000;flex:none;background:{{ sel.avatarBg }};box-shadow:3px 3px 0 #000"></div>
             <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
               <div style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;color:#ecebe4;line-height:1.2">{{ sel.name }}</div>
               <div style="font-size:12px;color:#9a9ca6">{{ sel.lvl }} · {{ sel.linkCount }} связей</div>
@@ -336,7 +336,7 @@ input::placeholder{color:#555964}
         <div style="display:flex;align-items:center;gap:6px;padding:0 12px;border-right:1px solid #1c1f25;white-space:nowrap"><div style="width:6px;height:6px;background:{{ sc.dot }}"></div><span>{{ sc.k }}</span><span style="color:#c9c8c0">{{ sc.v }}</span></div>
       </sc-for>
       <div style="flex:1"></div>
-      <div style="display:flex;align-items:center;padding:0 12px;border-left:1px solid #1c1f25;color:#555964">vk-chain 2.0</div>
+      <div style="display:flex;align-items:center;padding:0 12px;border-left:1px solid #1c1f25;color:#555964">vk-chain {{ appVersion }}</div>
     </div>
   </sc-if>
 
@@ -399,6 +399,22 @@ input::placeholder{color:#555964}
                 <div onClick="{{ o.pick }}" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:700;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</div>
               </sc-for>
             </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ЭКРАН</div>
+            <div style="display:flex;border:2px solid #262a31;border-radius:2px;overflow:hidden">
+              <sc-for list="{{ displaySeg }}" as="o" hint-placeholder-count="4">
+                <div onClick="{{ o.pick }}" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ showSizes }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;border:2px solid #262a31;border-radius:2px;overflow:hidden">
+                <sc-for list="{{ sizeSeg }}" as="o" hint-placeholder-count="4">
+                  <div onClick="{{ o.pick }}" style="flex:1;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="font-size:12px;color:#767a85">{{ displayNote }}</div>
           </div>
           <sc-for list="{{ mainSliders }}" as="sl" hint-placeholder-count="1">
             <div style="display:flex;flex-direction:column;gap:8px">
@@ -464,6 +480,24 @@ input::placeholder{color:#555964}
               </div>
             </sc-for>
           </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85">ЦВЕТ СВЯЗЕЙ</div>
+            <sc-for list="{{ edgeGroups }}" as="eg" hint-placeholder-count="2">
+              <div style="display:flex;flex-direction:column;gap:8px;padding:10px;border:2px solid #262a31;border-radius:2px;background:#0d0f12">
+                <div style="font-size:13px;font-weight:700;color:#e6e6df">{{ eg.title }}</div>
+                <sc-for list="{{ eg.rows }}" as="er" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:44px;flex:none;font-size:12px;color:#9a9ca6">{{ er.label }}</div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;flex:1">
+                      <sc-for list="{{ er.colors }}" as="sw" hint-placeholder-count="9">
+                        <div onClick="{{ sw.pick }}" style="width:20px;height:20px;border-radius:2px;cursor:pointer;background:{{ sw.c }};border:2px solid {{ sw.border }};box-shadow:{{ sw.shadow }}"></div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
           <sc-for list="{{ graphSliders }}" as="sl" hint-placeholder-count="4">
             <div style="display:flex;flex-direction:column;gap:8px">
               <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.1em;color:#767a85"><span>{{ sl.label }}</span><span style="color:#ecebe4">{{ sl.display }}</span></div>
@@ -492,8 +526,8 @@ const FN = ['Анна','Мария','Елена','Ольга','Дарья','Ир
 const LN = ['Смирнов','Кузнецов','Попов','Васильев','Петров','Новиков','Морозов','Волков','Лебедев','Козлов','Орлов','Зайцев','Павлов','Белов','Комаров','Фёдоров','Егоров','Гусев'];
 // What is remembered between runs. Per-session things - the open result, the
 // selection, a half-typed token - are deliberately not in this list.
-const PERSIST = ['cfg', 'lvlStyle', 'view', 'mode', 'from', 'to', 'relUser', 'center', 'src', 'people', 'histTab', 'sortBy', 'pathsN'];
-const CFG0 = { trim: false, maxNodes: 400, depth: 6, apiDelay: 0.35, cache: true, html: true, translit: true, notify: false, edges: true, labels: true, rotate: true, focus: true, glow: true, l1: true, l2: true, size: 1, edgeAlpha: 1, nodeDelay: 0.8, levelPause: 5 };
+const PERSIST = ['cfg', 'lvlStyle', 'view', 'mode', 'from', 'to', 'relUser', 'center', 'src', 'people', 'histTab', 'sortBy', 'pathsN', 'edgeStyle', 'display'];
+const CFG0 = { avatars: true, trim: false, maxNodes: 400, depth: 6, apiDelay: 0.35, cache: true, html: true, translit: true, notify: false, edges: true, labels: true, rotate: true, focus: true, glow: true, l1: true, l2: true, size: 1, edgeAlpha: 1, nodeDelay: 0.8, levelPause: 5 };
 const CITY = ['Москва','Москва','Москва','Санкт-Петербург','Санкт-Петербург','Казань','Новосибирск','Екатеринбург','Нижний Новгород'];
 const UNI = ['МГУ','СПбГУ','ВШЭ','МФТИ','МГТУ им. Баумана','КФУ','ИТМО','не указан','не указан'];
 const SCHOOL = ['Школа №57','Лицей №239','Гимназия №1543','Школа №179','Лицей «Вторая школа»','не указана','не указана'];
@@ -511,6 +545,10 @@ const RGB = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const shade = (h, k) => { const c = RGB(h); return 'rgb(' + c.map(v => Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k))).join(',') + ')'; };
 const SHADES = {};
 const shades = (h) => SHADES[h] || (SHADES[h] = [shade(h, 0.65), shade(h, 0.15), h, shade(h, -0.55), shade(h, -0.8)]);
+const EDGE_SWATCHES = ['#969bb0', '#e6e6df', '#7b8cff', '#4fd18b', '#f2c14e', '#ff7ac6', '#ff6b6b', '#5ad1e6', '#b98cff'];
+// Colours of links by level, as they rest and as they light up under the cursor.
+const EDGE0 = () => ({ normal: ['#969bb0', '#969bb0', '#969bb0'], hover: ['#4fd18b', '#f2c14e', '#ff7ac6'] });
+const DISPLAY0 = () => ({ mode: 'maximized', w: 1440, h: 900 });
 const PALETTE = ['#7b8cff', '#4fd18b', '#f2c14e', '#ff7ac6', '#ff6b6b', '#5ad1e6', '#b98cff', '#e6e6df'];
 const SHAPES = [['circle', 'circle(50%)'], ['square', 'inset(8%)'], ['diamond', 'polygon(50% 0,100% 50%,50% 100%,0 50%)'], ['triangle', 'polygon(50% 4%,100% 92%,0 92%)'], ['hex', 'polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%)']];
 const CLIP = Object.fromEntries(SHAPES);
@@ -760,12 +798,27 @@ function skeleton(nodes, edges, depth, paths) {
 
 class Component extends DCLogic {
   state = { lvlStyle: [{ color: LVL[0], shape: 'circle' }, { color: LVL[1], shape: 'circle' }, { color: LVL[2], shape: 'circle' }], nodeStyle: {}, pathIdx: 0, pathsOpen: false, q: '', sortBy: 'city', filters: {}, filtersOpen: false, histOpen: false, histTab: 'all', cfg: { ...CFG0 }, settings: null, screen: null, boot: 0, mode: 'chain', more: false, view: '3d', paused: false, sel: null, dragging: false,
-    pathsN: 1, tokenDraft: '', confirmClear: false, err: null,
+    pathsN: 1, tokenDraft: '', confirmClear: false, err: null, personDraft: '', edgeStyle: EDGE0(), display: DISPLAY0(),
     from: 'durov', to: 'id742860134', relUser: 'durov', center: 'durov',
     src: { f1: true, f2: true, city: true, school: false, groups: false }, people: ['durov', 'id3291847', 'id742860134'] };
   canvasRef = React.createRef();
   cam = { cx: W / 2, cy: H / 2 - 80, zoom: 0.8, dim: 1, flat: 0, hl: 0, rot: 0, tilt: 0.38, sf: 0 };
   user = { panX: 0, panY: 0, zoom: 1, tilt: 0 };
+
+  /// The zoom that makes the result on screen fill the window.
+  ///
+  /// Zoom is relative to the design's own scale. This used to be worked out
+  /// once, when a result arrived, so a window resized or put into full screen
+  /// afterwards kept the zoom chosen for the old size.
+  refit() {
+    const b = this.fitBox;
+    if (!b) { this.fit2 = this.fit3 = 1; return; }
+    const k = fit();
+    const avail2 = Math.min((W / 2 - 110) / b.fx, (H / 2 - 150) / b.fy);
+    const avail3 = (Math.min(W, H) / 2 - 70) / (b.r3 * 0.8);
+    this.fit2 = Math.max(0.2, Math.min(1.8, avail2 / (0.85 * k)));
+    this.fit3 = Math.max(0.2, Math.min(1.8, avail3 / (0.85 * k)));
+  }
 
   /// Reads the window's size into W and H and re-aims the camera at the
   /// centre of what is now on screen.
@@ -773,6 +826,7 @@ class Component extends DCLogic {
     const w = Math.max(640, window.innerWidth), h = Math.max(480, window.innerHeight);
     if (w === W && h === H) return;
     W = w; H = h;
+    this.refit();
     this.retarget();
     this.forceUpdate();
   }
@@ -899,6 +953,7 @@ class Component extends DCLogic {
     // with, not a leftover of the last thing that was looked for.
     this.g.keep = skeleton(nodes, edges, nodes.map(n => n.lvl), this.paths);
     this.fit2 = this.fit3 = 1;
+    this.fitBox = null;
     this.cover = { g: this.g, paths: this.paths, chain: this.chain, dA: this.dA, dB: this.dB };
     this.forceUpdate();
   }
@@ -909,6 +964,7 @@ class Component extends DCLogic {
     this.g = this.cover.g; this.paths = this.cover.paths;
     this.chain = this.cover.chain; this.dA = this.cover.dA; this.dB = this.cover.dB;
     this.fit2 = this.fit3 = 1;
+    this.fitBox = null;
   }
 
   // ---- back end ------------------------------------------------------
@@ -917,15 +973,24 @@ class Component extends DCLogic {
   api() { return window.pywebview && window.pywebview.api; }
 
   /// Full screen, through the window itself when there is one.
+  /// F11: full screen, and back to whatever was chosen before it.
   toggleFull() {
+    const d = this.state.display;
+    if (d.mode === 'fullscreen') this.setDisplay(this.beforeFull || 'maximized', d.w, d.h);
+    else { this.beforeFull = d.mode; this.setDisplay('fullscreen'); }
+  }
+
+  /// Changes how the window is shown and remembers it, so that the next start
+  /// opens the same way. The saved value is written by the settings timer.
+  async setDisplay(mode, w, h) {
+    const d = this.state.display, next = { mode, w: w || d.w, h: h || d.h };
+    this.setState({ display: next });
     const api = this.api();
-    if (api && api.toggle_fullscreen) {
-      api.toggle_fullscreen();
-    } else if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
-    }
+    if (!api || !api.set_display) { if (mode === 'fullscreen') document.documentElement.requestFullscreen?.(); return; }
+    try {
+      const r = await api.set_display(mode, next.w, next.h);
+      if (r && !r.ok) this.showErr(r.error || 'не удалось сменить режим экрана');
+    } catch (e) { this.showErr(e); }
   }
 
   /// Runs `cb` once the bridge exists; immediately if it already does. With
@@ -935,6 +1000,80 @@ class Component extends DCLogic {
     if (this.api()) { cb(); return; }
     window.addEventListener('pywebviewready', () => { clearTimeout(this.noBridge); cb(); }, { once: true });
     this.noBridge = setTimeout(() => { if (!this.api()) cb(); }, 1500);
+  }
+
+  /// A VK profile picture, once it has loaded. Asking starts the load; the
+  /// frame loop simply gets nothing until it is ready, so a slow connection
+  /// shows a graph without pictures and then with them, never a stall.
+  avatar(url) {
+    if (!url) return null;
+    this.avatars = this.avatars || new Map();
+    let a = this.avatars.get(url);
+    if (!a) {
+      a = { img: new Image(), ok: false };
+      a.img.referrerPolicy = 'no-referrer';
+      a.img.onload = () => { a.ok = true; };
+      a.img.onerror = () => { a.bad = true; };
+      a.img.src = url;
+      this.avatars.set(url, a);
+    }
+    return a.ok ? a.img : null;
+  }
+
+  /// One line saying what a finished search found.
+  summarise(res) {
+    const ids = new Set();
+    (res.edges || []).forEach(([a, b]) => { ids.add(a); ids.add(b); });
+    const mode = this.state.mode, p = res.paths && res.paths[0];
+    if (mode === 'chain' && p) return 'Цепочка найдена: ' + (p.length - 1) + ' рукопожатий' + (res.paths.length > 1 ? ', путей: ' + res.paths.length : '');
+    const what = { relatives: 'Родня', explore: 'Граф построен', intersect: 'Пересечения', clusters: 'Круги общения' }[mode] || 'Готово';
+    return what + ': ' + ids.size + ' человек';
+  }
+
+  /// A desktop notification, if they are on and it would not be redundant:
+  /// the search was a long one, or the window is not the thing being looked at.
+  notifyDone(title, text) {
+    const api = this.api();
+    if (!api || !this.state.cfg.notify) return;
+    const longRun = this.launchedAt && performance.now() - this.launchedAt > 8000;
+    if (longRun || !document.hasFocus()) { try { api.notify(title, text); } catch (e) { /* no bridge */ } }
+  }
+
+  /// Switching notifications on sends one straight away, so it is clear they
+  /// work, and where they appear, before a ten-minute search depends on it.
+  testNotify() {
+    const api = this.api();
+    if (api) { try { api.notify('vk-chain', 'Уведомления включены'); } catch (e) { /* ignore */ } }
+  }
+
+  setEdgeColor(group, level, colour) {
+    const es = { normal: [...this.state.edgeStyle.normal], hover: [...this.state.edgeStyle.hover] };
+    es[group][level] = colour;
+    this.setState({ edgeStyle: es });
+  }
+
+  /// Runs an old search again from the history. Clicking an entry used to
+  /// only switch to whatever result happened to be on screen.
+  rerun(type, args) {
+    const a = args || {};
+    const mode = { chain: 'chain', relatives: 'relatives', intersect: 'intersect', clusters: 'clusters' }[type] || 'explore';
+    const next = { mode, histOpen: false };
+    if (a.from != null) next.from = a.from;
+    if (a.to != null) next.to = a.to;
+    if (a.center != null) next.center = a.center;
+    if (a.relUser != null) next.relUser = a.relUser;
+    if (Array.isArray(a.people)) next.people = a.people;
+    this.setState(next, () => this.launch());
+  }
+
+  /// Adds whoever was typed to the intersection. It used to invent an id.
+  addPerson() {
+    const s = this.state, raw = (s.personDraft || '').trim();
+    if (!raw) return;
+    const id = raw.replace(/\/+$/, '').split('/').pop();
+    if (s.people.includes(id)) { this.setState({ personDraft: '' }); return; }
+    if (s.people.length >= 5) { this.showErr('в пересечении не больше пяти человек'); return; }
+    this.setState({ people: [...s.people, id], personDraft: '' });
   }
 
   /// Shows a message and lets it go by itself.
@@ -999,6 +1138,9 @@ class Component extends DCLogic {
       // New settings added since it was saved must keep their defaults.
       if (next.cfg) next.cfg = { ...CFG0, ...next.cfg };
       if (next.lvlStyle && next.lvlStyle.length !== 3) delete next.lvlStyle;
+      const okRow = (r) => Array.isArray(r) && r.length === 3 && r.every(c => /^#[0-9a-f]{6}$/i.test(c));
+      if (next.edgeStyle && !(okRow(next.edgeStyle.normal) && okRow(next.edgeStyle.hover))) delete next.edgeStyle;
+      if (next.display) next.display = { ...DISPLAY0(), ...next.display };
     }
     this.hadSaved = saved && saved.from !== undefined;
     if (next.view) this.cam.flat = next.view === '2d' ? 1 : 0;
@@ -1057,15 +1199,16 @@ class Component extends DCLogic {
     const api = this.api(), s = this.state;
     if (!api) { this.setScreen('search'); return; }   // demo, no back end
     this.setState({ err: null });
+    this.launchedAt = performance.now();
     this.fronts = { A: 0, B: 0, checked: { A: 0, B: 0 } };
     this.metVia = null;
     this.checkedTotal = 0;
     this.setScreen('search');
-    const opts = { include_relatives: !!s.src.f2, deep: !!s.cfg.deep, levels: s.cfg.depth, paths: s.pathsN || 1, max_nodes: s.cfg.maxNodes || 400 };
+    const opts = { include_relatives: !!s.src.f2, deep: !!s.cfg.deep, levels: s.cfg.depth, paths: s.pathsN || 1, max_nodes: s.cfg.maxNodes || 400, api_delay: s.cfg.apiDelay };
     const call =
       s.mode === 'chain'     ? api.chain(s.from, s.to, opts)
     : s.mode === 'relatives' ? api.relatives(s.relUser, opts)
-    : s.mode === 'intersect' ? api.intersect(s.people.filter(Boolean))
+    : s.mode === 'intersect' ? api.intersect(s.people.filter(Boolean), opts)
     : s.mode === 'clusters'  ? api.clusters(s.center, opts)
     :                          api.explore(s.center, opts);
     Promise.resolve(call).catch(e => this.onProgress({ type: 'error', message: String(e) }));
@@ -1083,11 +1226,12 @@ class Component extends DCLogic {
     }
     if (e.type === 'meet') { this.metVia = e.via; return; }
     if (e.type === 'error') {
+      this.notifyDone('Поиск не удался', e.message);
       this.showErr(e.message);
       this.setScreen('home');
       return;
     }
-    if (e.type === 'result') { this.applyResult(e); }
+    if (e.type === 'result') { this.notifyDone('vk-chain', this.summarise(e)); this.applyResult(e); }
   }
 
   /// Turns the back end's result into the graph this screen draws.
@@ -1109,6 +1253,7 @@ class Component extends DCLogic {
         t: 0,
         city: pr.city || '', uni: pr.uni || '', school: pr.school || '', work: pr.work || '',
         ageN: pr.ageN || 0, age: pr.age || '',
+        photo: pr.photo_url || '',
       };
     });
     const far = layoutGraph(nodes, G.edges, G.depth, G.roots, hasPath);
@@ -1134,13 +1279,10 @@ class Component extends DCLogic {
     this.dA = bfs(this.chain[0]);
     this.dB = bfs(last);
 
-    // Fit the camera to what was laid out. Zoom is relative to the design's
-    // own scale, so this is the factor that makes the result fill the window.
-    const k = fit();
-    const avail2 = Math.min((W / 2 - 110) / far.fx, (H / 2 - 150) / far.fy);
-    const avail3 = (Math.min(W, H) / 2 - 70) / (far.r3 * 0.8);
-    this.fit2 = Math.max(0.2, Math.min(1.8, avail2 / (0.85 * k)));
-    this.fit3 = Math.max(0.2, Math.min(1.8, avail3 / (0.85 * k)));
+    // Remember how big the layout is; the fit itself is worked out against the
+    // window as it is now, and again every time the window changes.
+    this.fitBox = { fx: far.fx, fy: far.fy, r3: far.r3 };
+    this.refit();
 
     this.user = { panX: 0, panY: 0, zoom: 1, tilt: 0 };
     this.setState({ pathIdx: 0, sel: null, nodeStyle: {} });
@@ -1181,6 +1323,7 @@ class Component extends DCLogic {
     if (cv.width !== W * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
     const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     const c = this.cam, { nodes, edges } = this.g, sel = this.state.sel, cfg = this.state.cfg;
+    this.avatarsDrawn = 0;
     const reveal = this.t0 ? (now - this.t0) / 1000 * (this.revealRate || 1) : 99;
     const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
     const camF = ease(Math.min(1, Math.max(0, (c.flat - 0.1) / 0.9)));
@@ -1202,6 +1345,12 @@ class Component extends DCLogic {
     const fa = ST != null ? ST * 1.2 : 0, fb = twoWay && ST != null ? ST * 1.2 : -9;
     const lit = (i) => ST == null ? null : [Math.max(0, Math.min(1, fa - this.dA[i])), Math.max(0, Math.min(1, fb - this.dB[i]))];
     ctx.lineCap = 'round';
+    // Link colours by level. A link belongs to the deeper of its two ends.
+    const es = this.state.edgeStyle || EDGE0();
+    const rgbOf = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    const ncol = es.normal.map(rgbOf), hcol = es.hover.map(rgbOf);
+    const edgeLv = (a, b) => Math.min(2, Math.max(0, Math.max(nodes[a].depth ?? nodes[a].lvl, nodes[b].depth ?? nodes[b].lvl) - 1));
+    const hov = this.hover != null && this.hover < nodes.length ? this.hover : null;
     const keepE = cfg.trim && this.g.keep ? this.g.keep : null;
     for (let ei = 0; ei < edges.length; ei++) {
       const [a, b] = edges[ei];
@@ -1214,12 +1363,13 @@ class Component extends DCLogic {
       }
       if (!cfg.edges) continue;
       if (keepE && !keepE[ei]) continue;
-      ctx.strokeStyle = `rgba(150,155,175,${0.14 * cfg.edgeAlpha * al * c.dim * (A.da + B.da) / 2 * Math.min(fade(a), fade(b))})`; ctx.lineWidth = 1;
+      const lit = hov != null && (a === hov || b === hov), L = edgeLv(a, b), [cr, cg, cb] = lit ? hcol[L] : ncol[L];
+      ctx.strokeStyle = lit ? `rgba(${cr},${cg},${cb},${Math.min(1, 0.85 * al)})` : `rgba(${cr},${cg},${cb},${0.14 * cfg.edgeAlpha * al * c.dim * (A.da + B.da) / 2 * Math.min(fade(a), fade(b))})`; ctx.lineWidth = lit ? 1.8 : 1;
       ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
     }
     if (sel != null) {
       const S = P[sel];
-      focusEdges.forEach(o => { const O = P[o]; if (O.a <= 0) return; ctx.globalAlpha = c.sf; ctx.strokeStyle = LVL[nodes[o].lvl]; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(S.x, S.y); ctx.lineTo(O.x, O.y); ctx.stroke(); });
+      focusEdges.forEach(o => { const O = P[o]; if (O.a <= 0) return; ctx.globalAlpha = c.sf; ctx.strokeStyle = es.hover[edgeLv(sel, o)]; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(S.x, S.y); ctx.lineTo(O.x, O.y); ctx.stroke(); });
       ctx.globalAlpha = 1;
     }
     if (c.hl > 0.01 && hlPath.length > 1 && ST == null) {
@@ -1257,11 +1407,24 @@ class Component extends DCLogic {
         if (i === 0 || (twoWay && i === this.chain[2])) { const pu = (ST * 2) % 1; ctx.globalAlpha = 1 - pu; ctx.strokeStyle = i === 0 ? FRONT_A : FRONT_B; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, rr + 6 + pu * 30, 0, 7); ctx.stroke(); rr = Math.max(rr, 12 * q.p); }
       }
       ctx.globalAlpha = q.da * (n.lvl === 0 ? 1 : c.dim) * fade(i) * am;
-      if (true) this.ball3d(ctx, q.x, q.y, rr, col, shp, i);
-      else {
-        if (rr > 3.5) { ctx.fillStyle = '#000'; shapePath(ctx, shp, q.x + rr * 0.3 + 1, q.y + rr * 0.3 + 1, rr); ctx.fill(); }
-        ctx.fillStyle = col; shapePath(ctx, shp, q.x, q.y, rr); ctx.fill();
-        if (rr > 3.5) { ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke(); }
+      // Nodes are always the shaded solids. There used to be a flat fallback as an
+      // `else` here, dead behind `if (true)`; putting code after this line without
+      // noticing it turned that else into the avatar block's, and every node
+      // without a picture then had a flat outline painted over its solid.
+      this.ball3d(ctx, q.x, q.y, rr, col, shp, i);
+      // Pictures go on the nodes that are big enough to show one, and always
+      // on the chain, the selection and whatever is under the cursor. Capped
+      // per frame so a large graph cannot turn this into a slideshow.
+      if (cfg.avatars && n.photo && this.avatarsDrawn < 160 && (rr >= 8 || onPath.has(i) || i === sel || i === hov)) {
+        const ph = this.avatar(n.photo);
+        if (ph) {
+          const R = Math.max(rr, 9);
+          ctx.save(); ctx.beginPath(); ctx.arc(q.x, q.y, R, 0, 7); ctx.clip();
+          ctx.drawImage(ph, q.x - R, q.y - R, 2 * R, 2 * R);
+          ctx.restore();
+          ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, R, 0, 7); ctx.stroke();
+          this.avatarsDrawn++;
+        }
       }
     }
     ctx.globalAlpha = 1;
@@ -1333,8 +1496,18 @@ class Component extends DCLogic {
     this.drag = { x: e.clientX, y: e.clientY, moved: 0 };
     this.setState({ dragging: true });
   };
+  /// Which node the pointer is over, found without a re-render: the frame
+  /// loop reads it, so nothing needs to be told.
+  hoverAt(e) {
+    if (this.state.screen !== 'graph' || !this.proj || this.state.dragging) { this.hover = null; return; }
+    const [mx, my] = this.local(e);
+    let best = -1, bd = 14 * 14;
+    this.proj.forEach((q, i) => { if (q.a < 0.3) return; const dd = (q.x - mx) ** 2 + (q.y - my) ** 2; if (dd < bd) { bd = dd; best = i; } });
+    this.hover = best >= 0 ? best : null;
+  }
+  onLeave = () => { this.hover = null; };
   onMove = (e) => {
-    const d = this.drag; if (!d) return;
+    const d = this.drag; if (!d) { this.hoverAt(e); return; }
     const dx = e.clientX - d.x, dy = e.clientY - d.y; d.x = e.clientX; d.y = e.clientY; d.moved += Math.abs(dx) + Math.abs(dy);
     if (this.state.view === '3d' && !e.shiftKey) {
       this.cam.rot += dx * 0.006;
@@ -1355,7 +1528,7 @@ class Component extends DCLogic {
 
   seg(on) { return { bg: on ? '#e6e6df' : 'transparent', color: on ? '#0a0b0d' : '#9a9ca6' }; }
 
-  tg(key, label, sub) { const on = this.state.cfg[key]; return { label, sub, track: on ? '#7b8cff' : '#262a31', knobX: on ? '22px' : '2px', toggle: () => this.setCfg({ [key]: !on }) }; }
+  tg(key, label, sub) { const on = this.state.cfg[key]; return { label, sub, track: on ? '#7b8cff' : '#262a31', knobX: on ? '22px' : '2px', toggle: () => { this.setCfg({ [key]: !on }); if (key === 'notify' && !on) this.testNotify(); } }; }
   sl(key, label, min, max, step, fmt) { const v = this.state.cfg[key]; return { label, min, max, step, value: v, display: fmt(v), onChange: e => this.setCfg({ [key]: +e.target.value }) }; }
   search(s) {
     const g = this.g; if (!g) return { list: [], facets: [] };
@@ -1376,7 +1549,7 @@ class Component extends DCLogic {
     const s = this.state, g = this.g, mode = MODES.find(m => m.id === s.mode);
     const st = this.state.status || { token_ok: false, cache_profiles: 0, cache_friends: 0 };
     const fmt = (n) => String(n ?? 0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    const boot = ['подключение к VK API', 'проверка токена', 'загрузка кэша · 18 660 профилей', 'запуск движка графа', 'готово'];
+    const boot = ['подключение к VK API', 'проверка токена', 'загрузка кэша · ' + fmt(st.cache_profiles) + ' профилей', 'запуск движка графа', 'готово'];
     const src = [['f1', 'Друзья'], ['f2', 'Друзья друзей'], ['city', 'Город'], ['school', 'Школа и вуз'], ['groups', 'Сообщества']];
     const sel = g && s.sel != null ? g.nodes[s.sel] : null;
     const lvlName = ['центр', 'уровень 1', 'уровень 2'];
@@ -1391,6 +1564,7 @@ class Component extends DCLogic {
       isSplash: s.screen === 'splash' || s.screen === null, isHome: s.screen === 'home', isGraph: s.screen === 'graph',
       bootPct: Math.round(s.boot / 5 * 100) + '%', bootLine: boot[Math.max(0, s.boot - 1)],
       tokenDot: st.token_ok ? '#4fd18b' : '#ff6b6b',
+      appVersion: st.version || '',
       tokenDraft: s.tokenDraft || '',
       onTokenDraft: e => this.setState({ tokenDraft: e.target.value }),
       tokenPlaceholder: st.token_ok ? (st.token_hint || 'токен сохранён') + ' · вставь новый' : 'вставь токен или всю ссылку',
@@ -1409,10 +1583,13 @@ class Component extends DCLogic {
         ? ('токен ok · ' + fmt(st.cache_profiles) + ' в кэше')
         : 'токена нет · только кэш',
       goHome: () => this.setScreen('home'),
+      onLeave: this.onLeave,
       // Read from the window itself: it can leave full screen by other means
       // than this button, and a flag would then say the wrong thing.
-      fullLabel: (window.innerWidth >= screen.width - 1 && window.innerHeight >= screen.height - 1) ? '⤡ ОКНО' : '⤢ ВО ВЕСЬ ЭКРАН',
-      toggleFull: () => this.toggleFull(),
+      displaySeg: [['window', 'Окно'], ['maximized', 'Развёрнуто'], ['borderless', 'Без рамки'], ['fullscreen', 'Весь экран']].map(([m, label]) => ({ label, ...this.seg(s.display.mode === m), pick: () => this.setDisplay(m) })),
+      showSizes: s.display.mode === 'window',
+      sizeSeg: [[1280, 800], [1440, 900], [1600, 900], [1920, 1080]].map(([w, h]) => ({ label: w + '×' + h, ...this.seg(s.display.w === w && s.display.h === h), pick: () => this.setDisplay('window', w, h) })),
+      displayNote: { window: 'Окно выбранного размера по центру экрана', maximized: 'Окно на весь экран, с рамкой и панелью задач', borderless: 'Без рамки, панель задач остаётся', fullscreen: 'Поверх всего, F11 — вернуться' }[s.display.mode],
       hint: s.view === '3d' ? 'тяни — вращать · shift+тяни — двигать · колесо — масштаб' : 'тяни — двигать · колесо — масштаб',
       mainModes: [...main.map((m, i) => ({ label: m.label, sep: '2px solid #262a31', ...this.seg(m.id === s.mode), pick: () => this.setState({ mode: m.id, more: false }) })),
         { label: extraActive ? mode.label : 'Ещё ▾', sep: 'none', ...this.seg(extraActive), pick: () => this.setState({ more: !s.more }) }],
@@ -1426,7 +1603,10 @@ class Component extends DCLogic {
       center: s.center, onCenter: e => this.setState({ center: e.target.value }),
       viewSeg: [['3d', '3D'], ['2d', '2D']].map(([v, l]) => ({ label: l, ...this.seg(s.view === v), pick: () => this.setState({ view: v }) })),
       people: s.people.map((id, i) => ({ id, remove: () => this.setState({ people: s.people.filter((_, j) => j !== i) }) })),
-      addPerson: () => s.people.length < 5 && this.setState({ people: [...s.people, 'id' + (100000 + s.people.length * 7331)] }),
+      personDraft: s.personDraft || '',
+      onPersonDraft: e => this.setState({ personDraft: e.target.value }),
+      onPersonKey: e => { if (e.key === 'Enter') { e.preventDefault(); this.addPerson(); } },
+      addPerson: () => this.addPerson(),
       run: () => this.launch(),
       modeIndex: String(MODES.indexOf(mode) + 1).padStart(2, '0') + ' / ' + String(MODES.length).padStart(2, '0'),
       showStatus: s.screen && s.screen !== 'splash',
@@ -1466,11 +1646,6 @@ class Component extends DCLogic {
           cancelSearch: () => this.setScreen('home'),
         };
       })(),
-      recent: [
-        { text: 'durov → id742860134', open: () => this.setScreen('graph') },
-        { text: 'Дуровы', open: () => this.setState({ mode: 'relatives' }) },
-        { text: 'граф id3291847', open: () => this.setScreen('graph') },
-      ],
       legend: g ? [{ count: '1', color: s.lvlStyle[0].color }, { count: String(g.N1), color: s.lvlStyle[1].color }, { count: String(g.N2), color: s.lvlStyle[2].color }] : [],
       ...(() => {
         if (!g) return {};
@@ -1499,6 +1674,8 @@ class Component extends DCLogic {
         idx: String(s.sel).padStart(4, '0'),
         fields: [['город', sel.city], ['вуз', sel.uni], ['школа', sel.school], ['работа', sel.work], ['возраст', sel.ageN]].map(([k, v]) => ({ k, v: String(v) })),
         name: sel.name, lvl: lvlName[sel.lvl], color: this.colOf(s.sel), linkCount: g.nb[s.sel].length,
+        // The picture, when there is one, over the level colour it replaces.
+        avatarBg: sel.photo ? 'url("' + encodeURI(sel.photo) + '") center/cover no-repeat, ' + this.colOf(s.sel) : this.colOf(s.sel),
         hops: path.length > 1 ? hopWord(path.length - 1) : 'это центр',
         path: path.map((i, j) => ({ name: g.nodes[i].name, color: LVL[g.nodes[i].lvl], lineTop: j ? '#7b8cff' : 'transparent', lineBottom: j < path.length - 1 ? '#7b8cff' : 'transparent', pick: pick(i) })),
         links: g.nb[s.sel].map(i => ({ name: g.nodes[i].name, color: LVL[g.nodes[i].lvl], dir: g.nodes[i].lvl < sel.lvl ? '↑ ближе' : g.nodes[i].lvl > sel.lvl ? '↓ дальше' : '↔ рядом', pick: pick(i) })),
@@ -1508,13 +1685,20 @@ class Component extends DCLogic {
       resetView: () => { this.user = { panX: 0, panY: 0, zoom: 1, tilt: 0 }; },
       settingsOpen: !!s.settings, tabMain: s.settings === 'main', tabGraph: s.settings === 'graph',
       openMain: () => this.setState({ settings: 'main' }), openGraph: () => this.setState({ settings: 'graph' }), closeSettings: () => this.setState({ settings: null }),
-      resetCfg: () => this.setState({ cfg: { ...CFG0 } }),
+      resetCfg: () => this.setState({ cfg: { ...CFG0 }, edgeStyle: EDGE0() }),
+      edgeGroups: [['normal', 'БЕЗ НАВЕДЕНИЯ'], ['hover', 'ПРИ НАВЕДЕНИИ']].map(([k, title]) => ({
+        title,
+        rows: [0, 1, 2].map(i => ({
+          label: 'Ур. ' + (i + 1),
+          colors: EDGE_SWATCHES.map(c => ({ c, border: s.edgeStyle[k][i] === c ? '#ecebe4' : '#000', shadow: s.edgeStyle[k][i] === c ? '2px 2px 0 #000' : 'none', pick: () => this.setEdgeColor(k, i, c) })),
+        })),
+      })),
       tabs: [['main', 'Основные'], ['graph', 'Граф']].map(([v, l]) => ({ label: l, ...this.seg(s.settings === v), pick: () => this.setState({ settings: v }) })),
       depthSeg: [3, 4, 5, 6].map(v => ({ label: String(v), ...this.seg(s.cfg.depth === v), pick: () => this.setCfg({ depth: v }) })),
       mainSliders: [this.sl('apiDelay', 'ЗАДЕРЖКА ЗАПРОСОВ', 0.1, 2, 0.05, v => v.toFixed(2) + 'с')],
       mainToggles: [this.tg('cache', 'Использовать кэш', 'friends_cache.json'), this.tg('html', 'HTML-отчёт', 'открывать после поиска'), this.tg('translit', 'Транслит фамилий', 'Ivanov = Иванов'), this.tg('notify', 'Уведомление', 'когда долгий поиск завершён')],
       levelChips: [['l0', 'Центр', 0], ['l1', 'Ур. 1', 1], ['l2', 'Ур. 2', 2]].map(([k, l, i]) => { const on = i === 0 || s.cfg[k]; return { label: l, dot: LVL[i], bg: on ? '#191c21' : 'transparent', border: on ? '#e6e6df' : '#262a31', color: on ? '#ecebe4' : '#555964', toggle: () => i && this.setCfg({ [k]: !s.cfg[k] }) }; }),
-      graphToggles: [this.tg('edges', 'Связи', 'линии между узлами'), this.tg('labels', 'Подписи', 'имена на цепочке'), this.tg('rotate', 'Автовращение', 'в режиме 3D'), this.tg('focus', 'Фокус на выбранном', 'гасить остальные узлы'), this.tg('glow', 'Свечение цепочки', 'подсветка найденного пути'), this.tg('trim', 'Обрезать лишние связи', 'оставить связи внутри кругов')],
+      graphToggles: [this.tg('edges', 'Связи', 'линии между узлами'), this.tg('labels', 'Подписи', 'имена на цепочке'), this.tg('rotate', 'Автовращение', 'в режиме 3D'), this.tg('focus', 'Фокус на выбранном', 'гасить остальные узлы'), this.tg('glow', 'Свечение цепочки', 'подсветка найденного пути'), this.tg('trim', 'Обрезать лишние связи', 'оставить связи внутри кругов'), this.tg('avatars', 'Аватарки', 'фото профилей на узлах')],
       graphSliders: [this.sl('size', 'РАЗМЕР УЗЛОВ', 0.5, 2, 0.1, v => '×' + v.toFixed(1)), this.sl('edgeAlpha', 'ЯРКОСТЬ СВЯЗЕЙ', 0.2, 3, 0.1, v => Math.round(v * 100) + '%'), this.sl('nodeDelay', 'ЗАДЕРЖКА МЕЖДУ УЗЛАМИ', 0.3, 4, 0.1, v => v.toFixed(1) + 'с'), this.sl('levelPause', 'ПАУЗА МЕЖДУ УРОВНЯМИ', 2, 20, 1, v => v + 'с'), this.sl('maxNodes', 'МАКС. УЗЛОВ В ГРАФЕ', 100, 1000, 50, v => String(v))],
       ...(() => {
         // Real history, written by the back end after every search. The
@@ -1534,7 +1718,7 @@ class Component extends DCLogic {
         };
         const H = (this.state.hist || []).map(h => {
           const k = kindOf[h.type] || 'graph';
-          return [k, titleOf[k], h.query || '', h.meta || '', when(h.ts)];
+          return [k, titleOf[k], h.query || '', h.meta || '', when(h.ts), h.args || {}, h.type];
         });
         const col = { chain: '#7b8cff', graph: '#4fd18b', rel: '#f2c14e' };
         const list = H.filter(h => s.histTab === 'all' || h[0] === s.histTab);
@@ -1542,8 +1726,8 @@ class Component extends DCLogic {
           histOpen: s.histOpen, histClosed: !s.histOpen, histCount: H.length,
           histToggleLabel: s.histOpen ? 'СВЕРНУТЬ ▴' : 'РАСКРЫТЬ ▾', toggleHist: () => this.setState({ histOpen: !s.histOpen }),
           histTabs: [['all', 'Все'], ['chain', 'Цепочки'], ['graph', 'Графы'], ['rel', 'Родня']].map(([v, l]) => ({ label: l, ...this.seg(s.histTab === v), pick: () => this.setState({ histTab: v }) })),
-          history: list.map(h => ({ type: h[1], q: h[2], meta: h[3], date: h[4], color: col[h[0]], open: () => h[0] === 'rel' ? this.setState({ mode: 'relatives' }) : this.setScreen('graph') })),
-          recent: H.slice(0, 3).map(h => ({ q: h[2], open: () => h[0] === 'rel' ? this.setState({ mode: 'relatives' }) : this.setScreen('graph') })),
+          history: list.map(h => ({ type: h[1], q: h[2], meta: h[3], date: h[4], color: col[h[0]], open: () => this.rerun(h[6], h[5]) })),
+          recent: H.slice(0, 3).map(h => ({ q: h[2], open: () => this.rerun(h[6], h[5]) })),
         };
       })(),
       ...(() => {

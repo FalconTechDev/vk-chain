@@ -178,6 +178,31 @@ def run(window) -> None:
         check("camera fit is sane", g and 0.2 <= g["fit2"] <= 1.8 and 0.2 <= g["fit3"] <= 1.8, f"{g and g['fit2']:.2f}/{g and g['fit3']:.2f}")
         check("no script errors while drawing", g and not g["errs"], str(g and g["errs"])[:120])
 
+        # ---- resizing after a result arrived re-fits it ----------------------------------------
+        # A hidden WebView2 window stops updating innerWidth after its first
+        # resize, so the size the page sees is overridden instead. What is
+        # under test is the page's reaction to a new size, not the browser's.
+        def pretend(w, h):
+            js(window, f"""
+              window.__d = window.__d || {{ w: Object.getOwnPropertyDescriptor(window, 'innerWidth'),
+                                          h: Object.getOwnPropertyDescriptor(window, 'innerHeight') }};
+              Object.defineProperty(window, 'innerWidth', {{ configurable: true, get: () => {w} }});
+              Object.defineProperty(window, 'innerHeight', {{ configurable: true, get: () => {h} }});
+              return 1;""")
+            step(window, 4)
+            return js(window, "return [window.vkApp.fit2, window.vkApp.fit3]")
+
+        before = js(window, "return [window.vkApp.fit2, window.vkApp.fit3]")
+        small = pretend(1000, 640)
+        check("the fit follows the window when it is made smaller", small[0] < before[0] and small[1] < before[1], f"{before} -> {small}")
+        big = pretend(1800, 1100)
+        check("and when it is made larger", big[0] > small[0] and big[1] > small[1], f"{small} -> {big}")
+        js(window, """
+          Object.defineProperty(window, 'innerWidth', window.__d.w);
+          Object.defineProperty(window, 'innerHeight', window.__d.h);
+          return 1;""")
+        step(window, 4)
+
         # ---- toggles that touch drawing ---------------------------------------------
         js(window, "window.vkApp.setCfg({trim: true}); return 1;")
         time.sleep(0.6)
@@ -240,7 +265,7 @@ def run(window) -> None:
         # ---- the search form ---------------------------------------------------------------
         body = text_after("window.vkApp.setScreen('home'); window.vkApp.setState({mode: 'chain', err: null})", 1.0)
         check("chain form has the path-count control", "КОЛИЧЕСТВО ПУТЕЙ" in body)
-        check("full-screen button is offered", "ВО ВЕСЬ ЭКРАН" in body)
+        check("full-screen button is no longer in the top bar", "ВО ВЕСЬ ЭКРАН" not in body)
         n = js(window, """
           const a = window.vkApp; a.setState({pathsN: 1});
           return null;""")
@@ -255,6 +280,24 @@ def run(window) -> None:
         low = js(window, "return window.vkApp.state.pathsN")
         check("path count stops at 1", low == 1, str(low))
 
+        # ---- history: clicking an entry runs that search again -----------------------------------------------
+        js(window, """
+          window.__launched = 0;
+          window.vkApp.launch = () => { window.__launched = 1; };    // never reach VK from a test
+          window.vkApp.rerun('chain', { from: 'id111', to: 'id222' });
+          return 1;""")
+        time.sleep(0.5)
+        st = js(window, "const s = window.vkApp.state; return { m: s.mode, f: s.from, t: s.to, l: window.__launched };")
+        check("a history entry refills the form and starts the search", st == {"m": "chain", "f": "id111", "t": "id222", "l": 1}, str(st))
+        js(window, "window.vkApp.rerun('relatives', { relUser: 'someone' }); return 1;")
+        time.sleep(0.4)
+        st = js(window, "const s = window.vkApp.state; return { m: s.mode, u: s.relUser };")
+        check("and does the same for relatives", st == {"m": "relatives", "u": "someone"}, str(st))
+        js(window, "window.vkApp.rerun('intersect', { people: ['a', 'b'] }); return 1;")
+        time.sleep(0.4)
+        st = js(window, "const s = window.vkApp.state; return { m: s.mode, p: s.people };")
+        check("and for intersections", st == {"m": "intersect", "p": ["a", "b"]}, str(st))
+
         # ---- every mode's form opens without an error ----------------------------------------------
         for mode in ("relatives", "explore", "intersect", "clusters", "chain"):
             body = text_after(f"window.vkApp.setState({{mode: '{mode}'}})", 0.5)
@@ -265,6 +308,141 @@ def run(window) -> None:
         check("an error toast appears", "проверка сообщения" in body)
         body = text_after("window.vkApp.renderVals().dismissErr()")
         check("and goes away", "проверка сообщения" not in body)
+
+
+        # ---- pixels: link colours, hover and avatars are really drawn -----------------------------
+        def reds(rgb: str) -> int:
+            """How many canvas pixels are close to a colour, at any opacity."""
+            r, g, b = (int(rgb[i:i + 2], 16) for i in (1, 3, 5))
+            return js(window, f"""
+              const c = document.querySelector('canvas'), x = c.getContext('2d');
+              const d = x.getImageData(0, 0, c.width, c.height).data;
+              let n = 0;
+              for (let i = 0; i < d.length; i += 4) {{
+                if (d[i + 3] > 10 && Math.abs(d[i] - {r}) < 40 && Math.abs(d[i + 1] - {g}) < 40 && Math.abs(d[i + 2] - {b}) < 40) n++;
+              }}
+              return n;""")
+
+        js(window, f"window.vkApp.applyResult({json.dumps(res)}); window.vkApp.setCfg({{trim: false, avatars: false, edges: true}}); window.vkApp.setState({{view: '2d', settings: null}}); return 1;")
+        time.sleep(0.4)
+        step(window, 150)
+        base = reds("#ff0000")
+        js(window, "const r = '#ff0000'; window.vkApp.setState({edgeStyle: {normal: [r, r, r], hover: ['#00ffff', '#00ffff', '#00ffff']}}); return 1;")
+        step(window, 4)
+        painted = reds("#ff0000")
+        check("link colour setting changes what is drawn", painted > base + 100, f"{base} -> {painted} red pixels")
+
+        hub = js(window, "const nb = window.vkApp.g.nb; let b = 0; nb.forEach((l, i) => { if (l.length > nb[b].length) b = i; }); return b;")
+        before = reds("#00ffff")
+        js(window, f"window.vkApp.hover = {hub}; return 1;")
+        step(window, 4)
+        lit = reds("#00ffff")
+        js(window, "window.vkApp.hover = null; return 1;")
+        step(window, 4)
+        after = reds("#00ffff")
+        check("a hovered node's links light up in the hover colour", lit > before + 30 and after < lit, f"{before} -> {lit} -> {after} cyan pixels")
+
+        # a magenta square as a stand-in picture; a data address is same-origin, so it does not taint the canvas
+        js(window, """
+          const c = document.createElement('canvas'); c.width = c.height = 64;
+          const x = c.getContext('2d'); x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 64, 64);
+          window.__avatar = c.toDataURL('image/png');
+          window.vkApp.g.nodes.forEach(n => { n.photo = window.__avatar; });
+          window.vkApp.setCfg({avatars: true});
+          return 1;""")
+        drawn = mag = 0
+        for _round in range(4):     # the picture loads asynchronously
+            step(window, 6)
+            time.sleep(0.5)
+            step(window, 8)
+            drawn = js(window, "return window.vkApp.avatarsDrawn")
+            mag = reds("#ff00ff")
+            if drawn and mag > 150:
+                break
+        check("avatars are drawn on the nodes", drawn and drawn > 0 and mag > 150, f"{drawn} drawn, {mag} magenta pixels")
+        js(window, "window.vkApp.setCfg({avatars: false}); return 1;")
+        step(window, 4)
+        check("and can be switched off", js(window, "return window.vkApp.avatarsDrawn") == 0)
+
+        card = js(window, "window.vkApp.setCfg({avatars: true}); window.vkApp.select(0); return window.vkApp.renderVals().sel.avatarBg;")
+        check("the profile card shows the picture", "url(" in (card or ""), str(card)[:50])
+        js(window, "window.vkApp.select(null); return 1;")
+
+        # ---- intersections: an id can be typed in -----------------------------------------------------
+        js(window, "window.vkApp.setState({people: [], personDraft: 'id777'}); return 1;")
+        js(window, "window.vkApp.setScreen('home'); window.vkApp.setState({mode: 'intersect'}); return 1;")
+        time.sleep(0.8)
+        body = js(window, "return document.body.innerText") or ""
+        check("intersection form has a field for an id", "+ добавить" in body and "+ человек" not in body)
+        js(window, "window.vkApp.renderVals().addPerson(); return 1;")
+        time.sleep(0.3)
+        people = js(window, "return window.vkApp.state.people")
+        check("the typed id is added, not an invented one", people == ["id777"], str(people))
+        js(window, "window.vkApp.setState({personDraft: 'https://vk.com/some_name/'}); window.vkApp.renderVals().onPersonKey({key: 'Enter', preventDefault() {}}); return 1;")
+        time.sleep(0.3)
+        people = js(window, "return window.vkApp.state.people")
+        check("Enter adds it, and a link is reduced to the name", people == ["id777", "some_name"], str(people))
+        js(window, "window.vkApp.setState({people: ['a','b','c','d','e'], personDraft: 'f'}); window.vkApp.addPerson(); return 1;")
+        time.sleep(0.4)
+        body = js(window, "return document.body.innerText") or ""
+        check("a sixth person is refused with a message", "не больше пяти" in body)
+        js(window, "window.vkApp.setState({people: [], personDraft: '', err: null}); return 1;")
+
+        # ---- settings: link colours and screen mode --------------------------------------------------------
+        body = text_after("window.vkApp.setScreen('home'); window.vkApp.setState({settings: 'graph'})", 0.8)
+        check("graph tab has link colours for both states", "ЦВЕТ СВЯЗЕЙ" in body and "БЕЗ НАВЕДЕНИЯ" in body and "ПРИ НАВЕДЕНИИ" in body)
+        check("graph tab has the avatars switch", "Аватарки" in body)
+        js(window, "window.vkApp.renderVals().edgeGroups[1].rows[0].colors[2].pick(); return 1;")
+        time.sleep(0.3)
+        picked = js(window, "return window.vkApp.state.edgeStyle.hover[0]")
+        check("picking a swatch sets that level's colour", picked == "#7b8cff", str(picked))
+
+        body = text_after("window.vkApp.setState({settings: 'main'})", 0.8)
+        check("main tab has the screen mode", "ЭКРАН" in body and "Развёрнуто" in body and "Весь экран" in body and "Без рамки" in body)
+        js(window, "window.vkApp.renderVals().displaySeg[0].pick(); return 1;")      # window
+        time.sleep(0.8)
+        body = js(window, "return document.body.innerText") or ""
+        check("a window size can be chosen", "1280×800" in body and "1920×1080" in body)
+        js(window, "window.vkApp.renderVals().sizeSeg[0].pick(); return 1;")
+        time.sleep(1.0)
+        disp = js(window, "return window.vkApp.state.display")
+        check("the chosen size is kept in the state", disp == {"mode": "window", "w": 1280, "h": 800}, str(disp))
+        shown = js(window, "return document.body.innerText.slice(0, 2000)") or ""
+        check("changing the mode raised no error", "не удалось" not in shown and "режим недоступен" not in shown)
+
+        # these two are written with the rest, and read back
+        time.sleep(1.5)
+        saved = json.loads(app.SETTINGS.read_text(encoding="utf-8"))
+        check("screen mode and link colours are written to disk",
+              saved.get("display") == {"mode": "window", "w": 1280, "h": 800} and saved.get("edgeStyle", {}).get("hover", [""])[0] == "#7b8cff",
+              str({k: saved.get(k) for k in ("display",)}))
+
+        # ---- notifications -------------------------------------------------------------------------------------
+        TOASTS.clear()
+        js(window, "window.vkApp.setCfg({notify: false}); window.vkApp.setState({settings: 'main'}); return 1;")
+        time.sleep(0.4)
+        js(window, "window.vkApp.renderVals().mainToggles.find(t => /Уведомлен/.test(t.label)).toggle(); return 1;")
+        time.sleep(1.0)
+        check("switching notifications on shows a test one", ("vk-chain", "Уведомления включены") in TOASTS, str(TOASTS))
+        TOASTS.clear()
+        js(window, "window.vkApp.launchedAt = performance.now() - 20000; window.vkApp.notifyDone('vk-chain', 'готово'); return 1;")
+        time.sleep(0.8)
+        check("a long search finishing sends one", ("vk-chain", "готово") in TOASTS, str(TOASTS))
+        TOASTS.clear()
+        js(window, "window.vkApp.setCfg({notify: false}); window.vkApp.notifyDone('vk-chain', 'тихо'); return 1;")
+        time.sleep(0.8)
+        check("and nothing is sent when they are off", not TOASTS, str(TOASTS))
+        summary = js(window, "window.vkApp.setState({mode: 'chain'}); return window.vkApp.summarise({paths: [[1,2,3,4]], edges: [[1,2]]});")
+        check("the notification says what was found", "3 рукопожатий" in (summary or ""), str(summary))
+        js(window, "window.vkApp.setState({settings: null}); return 1;")
+
+        # ---- nodes are only ever drawn as the shaded solids -------------------------------------------------
+        src = app.UI.read_text(encoding="utf-8")
+        i = src.index("this.ball3d(ctx, q.x, q.y, rr, col, shp, i);")
+        tail = src[i:i + 1500]
+        check("no flat shape is painted over the solids",
+              "shapePath(ctx, shp, q.x" not in tail,
+              "a stray `else` after ball3d binds to whatever follows it")
 
         # ---- bad input does not break the page ---------------------------------------------
         js(window, "window.vkApp.applyResult({edges: [], paths: []}); return 1;")
@@ -279,11 +457,18 @@ def run(window) -> None:
         window.destroy()
 
 
+TOASTS: list = []
+
+
 def main() -> int:
     ui = app.UI
+    # A real notification would pop up on whoever is running the test.
+    app._toast = lambda title, message: TOASTS.append((title, message)) or True
+    api = app.Api()
     window = webview.create_window(
-        "selftest", str(ui), js_api=app.Api(), width=1400, height=900, hidden=True,
+        "selftest", str(ui), js_api=api, width=1400, height=900, hidden=True,
     )
+    api.bind(window)
     t = threading.Thread(target=lambda: None)
     webview.start(run, window, debug=False)
     failed = [r for r in results if not r[1]]
